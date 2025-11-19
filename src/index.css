@@ -1,0 +1,88 @@
+@config "../tailwind.config.js";
+@import "tailwindcss";
+
+:root {
+  --color-background: 247 249 253;
+  --color-foreground: 32 41 58;
+
+  --color-card: 255 255 255;
+  --color-card-foreground: 20 31 50;
+
+  --color-border: 225 231 240;
+
+  /* Inspired by AutoClassmate AI blue */
+  --color-primary: 78 110 242; /* #4E6EF2 */
+  --color-primary-foreground: 255 255 255;
+
+  /* Soft supporting blue like BriskTeaching */
+  --color-secondary: 162 191 252; /* soft light indigo */
+
+  --color-muted: 240 244 248;
+  --color-muted-foreground: 100 116 139;
+
+  /* Feedback colors */
+  --color-success: 34 197 94; /* green-500 */
+  --color-warning: 245 158 11; /* amber-500 */
+  --color-danger: 239 68 68; /* red-500 */
+}
+
+.dark {
+  --color-background: 18 24 38;
+  --color-foreground: 226 232 240;
+
+  --color-card: 30 39 58;
+  --color-card-foreground: 241 245 249;
+
+  --color-border: 52 63 82;
+
+  /* Brighter primary for dark mode */
+  --color-primary: 121 133 255;
+  --color-primary-foreground: 15 15 15;
+
+  --color-secondary: 115 130 170;
+
+  --color-muted: 28 37 53;
+  --color-muted-foreground: 148 163 184;
+
+  --color-success: 52 211 153;
+  --color-warning: 249 191 29;
+  --color-danger: 248 113 113;
+}
+
+/* Global styling stays same */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: rgb(var(--color-background));
+  color: rgb(var(--color-foreground));
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--color-muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--color-muted-foreground) / 0.5);
+}
