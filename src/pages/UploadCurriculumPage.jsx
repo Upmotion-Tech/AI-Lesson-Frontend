@@ -22,67 +22,45 @@ const UploadCurriculumPage = () => {
   const isLoading = status === "loading";
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div className="relative overflow-hidden rounded-2xl border bg-linear-to-br from-primary/5 via-background to-secondary/10 p-6 sm:p-8">
-        <div className="flex flex-wrap gap-4 sm:gap-6 items-center">
-          <div className="p-3 sm:p-4 rounded-2xl bg-background/90 shadow-inner flex items-center justify-center">
-            <BookOpen className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+    <div className="space-y-4 sm:space-y-6">
+      <div className="pb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
           </div>
-          <div className="flex-1 min-w-[220px]">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
-              Curriculum Workspace
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-              Upload & Preview Curriculum
-            </h1>
-            <p className="text-sm text-muted-foreground max-w-3xl mt-2">
-              Upload your curriculum files (.pdf, .docx, .txt) and instantly
-              preview extracted content and objectives before generating
-              lessons.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-          {[
-            { label: "Supported Types", value: "PDF · DOCX · TXT" },
-            { label: "Max Size", value: "20 MB" },
-            { label: "Processing", value: "Automatic Parsing" },
-            { label: "Last Upload", value: latest ? "Available" : "Not yet" },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="rounded-xl border bg-background/60 px-3 py-2 text-center"
-            >
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                {item.label}
-              </p>
-              <p className="font-semibold text-foreground">{item.value}</p>
-            </div>
-          ))}
-        </div>
+          <span>Upload Curriculum</span>
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Upload your curriculum file (.pdf, .docx, or .txt). The system will
+          extract text content for lesson generation.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <Card
           title="Upload New Curriculum"
-          className="border border-border/60 shadow-lg shadow-primary/5"
-          headerClassName="flex items-center gap-2"
+          className="border-l-4 border-l-primary"
         >
+          <div className="flex items-center gap-2 mb-4 p-2 bg-primary/5 rounded-lg border border-primary/10">
+            <Upload className="h-5 w-5 text-primary" />
+            <span className="text-sm text-muted-foreground">
+              Supported formats: PDF, DOCX, TXT
+            </span>
+          </div>
           <CurriculumUploadForm />
         </Card>
 
-        <div className="min-h-[420px] space-y-3">
+        <div className="min-h-[400px]">
           {isLoading ? (
-            <Card className="flex h-full items-center justify-center border border-border/60">
+            <div className="flex justify-center items-center h-64">
               <Loader size="lg" />
-            </Card>
+            </div>
           ) : latest ? (
             <CurriculumPreviewCard curriculum={latest} />
           ) : (
-            <Card className="h-full border border-dashed border-muted-foreground/30 bg-muted/40">
+            <Card className="h-full border-l-4 border-l-muted">
               <EmptyState
-                message="No curriculum uploaded yet. Start by adding your first file to unlock previews and objective extraction."
+                message="No curriculum uploaded yet. Upload a file to get started."
                 icon={BookOpen}
               />
             </Card>

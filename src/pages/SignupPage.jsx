@@ -24,7 +24,7 @@ const SignupPage = () => {
             <Sparkles className="h-5 w-5 text-primary" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-            Join AI Lesson
+            Join AI Lesson Planner
           </h1>
           <p className="text-sm text-muted-foreground">
             Start creating amazing lesson plans today
@@ -35,7 +35,7 @@ const SignupPage = () => {
             Create an Account
           </h2>
           <p className="text-sm text-muted-foreground text-center mb-6">
-            Sign up to start using AI Lesson
+            Sign up to start using AI Lesson Planner
           </p>
           <SignupForm />
         </Card>

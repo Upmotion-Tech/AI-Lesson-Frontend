@@ -45,7 +45,7 @@ const Header = ({ onToggleMenu, isMobileMenuOpen }) => {
         <div className="flex items-center gap-3">
           {renderMenuToggle()}
           <h1 className="text-xl font-bold text-card-foreground">
-            AI Lesson
+            AI Lesson Planner
           </h1>
         </div>
         <div className="flex items-center gap-4">

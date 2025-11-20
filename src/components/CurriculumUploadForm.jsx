@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
 import { uploadCurriculum } from "../store/curriculumThunks.js";
@@ -10,13 +10,6 @@ import Loader from "./common/Loader.jsx";
 import { curriculumFileSchema } from "../utils/validators.js";
 import { formatFileSize } from "../utils/formatters.js";
 import { toast } from "react-hot-toast";
-import {
-  CloudUpload,
-  ShieldCheck,
-  Sparkles,
-  Clock,
-  CheckCircle2,
-} from "lucide-react";
 
 const CurriculumUploadForm = () => {
   const dispatch = useAppDispatch();
@@ -99,164 +92,42 @@ const CurriculumUploadForm = () => {
 
   const isLoading = uploadStatus === "loading";
 
-  const statusConfig = useMemo(() => {
-    switch (uploadStatus) {
-      case "loading":
-        return {
-          label: "Uploading in progress",
-          tone: "text-warning",
-          bg: "bg-warning/10 border-warning/30",
-        };
-      case "succeeded":
-        return {
-          label: "Upload successful",
-          tone: "text-success",
-          bg: "bg-success/10 border-success/30",
-        };
-      case "failed":
-        return {
-          label: "Upload failed",
-          tone: "text-danger",
-          bg: "bg-danger/10 border-danger/30",
-        };
-      default:
-        return {
-          label: "Awaiting file",
-          tone: "text-muted-foreground",
-          bg: "bg-muted/40 border-border/60",
-        };
-    }
-  }, [uploadStatus]);
-
-  const helperHighlights = [
-    {
-      icon: Sparkles,
-      title: "Smart extraction",
-      description: "Objectives auto-detected from text content.",
-    },
-    {
-      icon: ShieldCheck,
-      title: "Secure storage",
-      description: "Your files are encrypted during upload.",
-    },
-    {
-      icon: Clock,
-      title: "Fast processing",
-      description: "Average processing completes in under a minute.",
-    },
-  ];
+  console.log("isLoading", isLoading);
+  console.log("uploadStatus", uploadStatus);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div
-        className={`rounded-2xl border px-4 py-3 text-sm font-medium flex items-center gap-3 ${statusConfig.bg}`}
-      >
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex h-2.5 w-2.5 rounded-full ${
-              uploadStatus === "succeeded"
-                ? "bg-success"
-                : uploadStatus === "failed"
-                ? "bg-danger"
-                : uploadStatus === "loading"
-                ? "bg-warning"
-                : "bg-muted-foreground/50"
-            }`}
-          />
-          <span className={statusConfig.tone}>{statusConfig.label}</span>
-        </div>
-        {uploadStatus !== "idle" && uploadStatus !== "loading" && (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <FileInput
+        label="Curriculum File"
+        accept=".pdf,.docx,.txt"
+        name="curriculumFile"
+        onChange={handleFileChange}
+        error={fileError}
+        required
+      />
+      {file && (
+        <p className="text-sm text-muted-foreground">
+          Selected: {file.name} ({formatFileSize(file.size)})
+        </p>
+      )}
+      {error && <ErrorMessage message={error} />}
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? <Loader size="sm" /> : "Upload Curriculum"}
+      </Button>
+      {uploadStatus === "failed" && (
+        <div className="text-center">
+          <p className="text-xs text-danger mb-2">
+            Upload failed. Please try again.
+          </p>
           <Button
             type="button"
-            size="xs"
             variant="ghost"
+            size="sm"
             onClick={() => dispatch(resetUploadStatus())}
-            className="ml-auto text-xs"
+            className="text-xs"
           >
             Reset
           </Button>
-        )}
-      </div>
-
-      <div className="space-y-3 rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-4 sm:p-5">
-        <div className="flex flex-col gap-3">
-          <FileInput
-            label="Curriculum File"
-            accept=".pdf,.docx,.txt"
-            name="curriculumFile"
-            onChange={handleFileChange}
-            error={fileError}
-            required
-            className="bg-background"
-          />
-          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-            <span className="rounded-full border border-border/60 px-3 py-1">
-              Max 20 MB
-            </span>
-            <span className="rounded-full border border-border/60 px-3 py-1">
-              PDF · DOCX · TXT
-            </span>
-            <span className="rounded-full border border-border/60 px-3 py-1">
-              Organized in folders
-            </span>
-          </div>
-        </div>
-
-        {file && (
-          <div className="rounded-xl bg-background p-3 shadow-inner text-sm text-muted-foreground">
-            <div className="flex items-center gap-2 font-medium text-card-foreground">
-              <CheckCircle2 className="h-4 w-4 text-success" />
-              Ready to upload
-            </div>
-            <p className="mt-1 text-xs sm:text-sm">
-              {file.name} • {formatFileSize(file.size)}
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {helperHighlights.map(({ icon, title, description }) => {
-          const Icon = icon;
-          return (
-            <div
-              key={title}
-              className="rounded-2xl border border-border/60 bg-background/80 p-3 flex gap-3"
-            >
-              <div className="rounded-full bg-primary/10 p-2 text-primary shrink-0 h-fit">
-                <Icon className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-card-foreground">
-                  {title}
-                </p>
-                <p className="text-xs text-muted-foreground">{description}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {error && <ErrorMessage message={error} />}
-
-      <Button
-        type="submit"
-        disabled={isLoading}
-        className="w-full rounded-xl py-3 text-base font-semibold flex items-center justify-center gap-2"
-      >
-        {isLoading ? (
-          <Loader size="sm" />
-        ) : (
-          <>
-            <CloudUpload className="h-5 w-5" />
-            Upload Curriculum
-          </>
-        )}
-      </Button>
-
-      {uploadStatus === "failed" && (
-        <div className="text-center text-xs text-muted-foreground">
-          Upload failed. Please try again or reset the uploader.
         </div>
       )}
     </form>
