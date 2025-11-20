@@ -55,7 +55,7 @@ const SignupForm = () => {
 
       if (signup.fulfilled.match(result)) {
         toast.success("Account created successfully");
-        navigate("/login", { replace: true });
+        navigate("/");
       } else {
         const message =
           result.payload || result.error?.message || "Signup failed";
