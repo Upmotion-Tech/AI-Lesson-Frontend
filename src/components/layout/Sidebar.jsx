@@ -6,6 +6,7 @@ import {
   Sparkles,
   PanelLeftClose,
   PanelLeftOpen,
+  FileText,
 } from "lucide-react";
 import AiLesson from "../../assets/Ai-lesson.png";
 import AiLessonLogo from "../../assets/Ai-lesson-logo.png";
@@ -21,6 +22,7 @@ const Sidebar = ({
     { path: "/upload-curriculum", label: "Upload Curriculum", icon: BookOpen },
     { path: "/upload-students", label: "Upload Students", icon: Users },
     { path: "/generate-lesson", label: "Generate Lesson", icon: Sparkles },
+    { path: "/lessons", label: "My Lesson Plans", icon: FileText },
   ];
 
   const sidebarWidth = isCollapsed ? "w-20" : "w-64";

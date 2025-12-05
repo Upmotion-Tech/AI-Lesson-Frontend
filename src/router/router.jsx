@@ -6,6 +6,8 @@ import DashboardPage from "../pages/DashboardPage.jsx";
 import UploadCurriculumPage from "../pages/UploadCurriculumPage.jsx";
 import UploadStudentsPage from "../pages/UploadStudentsPage.jsx";
 import GenerateLessonPage from "../pages/GenerateLessonPage.jsx";
+import LessonViewPage from "../pages/LessonViewPage.jsx";
+import LessonPlansPage from "../pages/LessonPlansPage.jsx";
 import AppLayout from "../components/layout/AppLayout.jsx";
 import RequireAuth from "./RequireAuth.jsx";
 
@@ -59,6 +61,26 @@ const router = createBrowserRouter([
       <RequireAuth>
         <AppLayout>
           <GenerateLessonPage />
+        </AppLayout>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/lessons",
+    element: (
+      <RequireAuth>
+        <AppLayout>
+          <LessonPlansPage />
+        </AppLayout>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/lessons/:id",
+    element: (
+      <RequireAuth>
+        <AppLayout>
+          <LessonViewPage />
         </AppLayout>
       </RequireAuth>
     ),

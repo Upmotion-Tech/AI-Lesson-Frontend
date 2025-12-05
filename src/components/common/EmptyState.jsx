@@ -3,6 +3,8 @@ import Button from "./Button.jsx";
 
 const EmptyState = ({
   message,
+  title,
+  description,
   actionLabel,
   onAction,
   icon = Inbox,
@@ -12,7 +14,8 @@ const EmptyState = ({
   return (
     <div className={`text-center py-12 ${className}`}>
       <IconComponent className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-      <p className="text-muted-foreground mb-4">{message}</p>
+      {title && <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>}
+      <p className="text-muted-foreground mb-4">{description || message}</p>
       {actionLabel && onAction && (
         <Button onClick={onAction} variant="primary">
           {actionLabel}
