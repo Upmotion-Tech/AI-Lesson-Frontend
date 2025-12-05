@@ -1,13 +1,15 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
 import { fetchLatestCurriculum } from "../store/curriculumThunks.js";
 import { fetchLatestStudentData } from "../store/studentDataThunks.js";
 import Card from "../components/common/Card.jsx";
 import Button from "../components/common/Button.jsx";
-import Loader from "../components/common/Loader.jsx";
+import { CardSkeleton } from "../components/common/Skeleton.jsx";
 import Badge from "../components/common/Badge.jsx";
+import PageTransition from "../components/common/PageTransition.jsx";
 import { formatDateShort } from "../utils/formatters.js";
 import { BookOpen, Users, Sparkles, TrendingUp, FileText } from "lucide-react";
 
@@ -45,14 +47,24 @@ const DashboardPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader size="lg" />
-      </div>
+      <PageTransition>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="pb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+              Dashboard
+            </h1>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <CardSkeleton count={3} />
+          </div>
+        </div>
+      </PageTransition>
     );
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <PageTransition>
+      <div className="space-y-4 sm:space-y-6">
       <div className="pb-2">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
           Dashboard
@@ -62,9 +74,28 @@ const DashboardPage = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: { opacity: 0 },
+          show: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.1,
+            },
+          },
+        }}
+      >
         {/* Curriculum Card */}
-        <Card className="hover:shadow-md transition-all duration-200 border-l-4 border-l-primary">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 },
+          }}
+        >
+          <Card className="border-l-4 border-l-primary">
           <div className="space-y-4 flex flex-col justify-between h-full gap-4">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
@@ -116,9 +147,16 @@ const DashboardPage = () => {
             </Button>
           </div>
         </Card>
+        </motion.div>
 
         {/* Student Data Card */}
-        <Card className="hover:shadow-md transition-all duration-200 border-l-4 border-l-success">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 },
+          }}
+        >
+          <Card className="border-l-4 border-l-success">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-success/10 rounded-lg">
@@ -174,9 +212,17 @@ const DashboardPage = () => {
             </Button>
           </div>
         </Card>
+        </motion.div>
 
         {/* Lesson Generation Card */}
-        <Card className="hover:shadow-md transition-all duration-200 border-l-4 border-l-primary sm:col-span-2 lg:col-span-1">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            show: { opacity: 1, y: 0 },
+          }}
+          className="sm:col-span-2 lg:col-span-1"
+        >
+          <Card className="border-l-4 border-l-primary">
           <div className="space-y-4 flex flex-col justify-between h-full gap-4">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
@@ -205,8 +251,10 @@ const DashboardPage = () => {
             </Button>
           </div>
         </Card>
+        </motion.div>
+      </motion.div>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 

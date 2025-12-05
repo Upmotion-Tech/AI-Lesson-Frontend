@@ -47,7 +47,7 @@ const LessonGeneratePlaceholder = () => {
 
       {!canGenerate && (
         <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-warning mt-0.5 flex-shrink-0" />
+          <AlertCircle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
           <div className="flex-1">
             <p className="text-sm font-medium text-card-foreground mb-1">
               Missing Requirements
@@ -62,7 +62,7 @@ const LessonGeneratePlaceholder = () => {
 
       {canGenerate && (
         <div className="p-4 bg-success/10 border border-success/20 rounded-lg flex items-start gap-3">
-          <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
+          <CheckCircle2 className="h-5 w-5 text-success mt-0.5 shrink-0" />
           <div className="flex-1">
             <p className="text-sm font-medium text-card-foreground">
               Ready to generate lesson plan

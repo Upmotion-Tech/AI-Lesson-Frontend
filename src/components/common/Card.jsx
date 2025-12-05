@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 const Card = ({
   children,
   className = "",
@@ -7,14 +9,45 @@ const Card = ({
   titleAs = "h3",
   headerClassName = "",
   bodyClassName = "",
+  onClick,
+  clickable = false,
+  hoverable = true,
   ...props
 }) => {
   const hasHeader = title || description || action;
   const TitleTag = titleAs;
+  const isInteractive = onClick || clickable;
+
+  const cardClasses = `bg-card/95 border border-border/70 rounded-2xl shadow-sm shadow-black/5 p-4 sm:p-6 transition-all duration-300 ${
+    hoverable && !isInteractive
+      ? "hover:shadow-lg hover:shadow-black/10 hover:-translate-y-0.5"
+      : ""
+  } ${
+    isInteractive
+      ? "cursor-pointer hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 active:scale-[0.99]"
+      : ""
+  } ${className}`;
+
+  const CardWrapper = isInteractive ? motion.div : motion.div;
 
   return (
-    <div
-      className={`bg-card/95 border border-border/70 rounded-2xl shadow-sm shadow-black/5 p-4 sm:p-6 transition-shadow duration-200 hover:shadow-md ${className}`}
+    <CardWrapper
+      onClick={onClick}
+      whileHover={isInteractive ? { y: -2 } : {}}
+      whileTap={isInteractive ? { scale: 0.99 } : {}}
+      className={cardClasses}
+      role={isInteractive ? "button" : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
+      onKeyDown={
+        isInteractive && onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick(e);
+              }
+            }
+          : undefined
+      }
       {...props}
     >
       {hasHeader && (
@@ -35,7 +68,7 @@ const Card = ({
         </div>
       )}
       <div className={bodyClassName}>{children}</div>
-    </div>
+    </CardWrapper>
   );
 };
 

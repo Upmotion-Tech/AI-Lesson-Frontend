@@ -29,6 +29,23 @@ function App() {
             duration: 4000,
             style: {
               fontSize: "0.95rem",
+              background: "hsl(var(--card))",
+              color: "hsl(var(--card-foreground))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: "0.5rem",
+              padding: "0.75rem 1rem",
+            },
+            success: {
+              iconTheme: {
+                primary: "hsl(var(--success))",
+                secondary: "white",
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: "hsl(var(--danger))",
+                secondary: "white",
+              },
             },
           }}
         />

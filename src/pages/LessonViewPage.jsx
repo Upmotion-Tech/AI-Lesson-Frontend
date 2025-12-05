@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
 import { fetchLessonPlan, updateLessonPlan } from "../store/lessonThunks.js";
 import Card from "../components/common/Card.jsx";
-import Loader from "../components/common/Loader.jsx";
 import Button from "../components/common/Button.jsx";
 import ErrorMessage from "../components/common/ErrorMessage.jsx";
+import { CardSkeleton } from "../components/common/Skeleton.jsx";
+import PageTransition from "../components/common/PageTransition.jsx";
 import { toast } from "react-hot-toast";
 import {
   ArrowLeft,
@@ -139,9 +141,18 @@ const LessonViewPage = () => {
 
   if (status === "loading") {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader size="lg" />
-      </div>
+      <PageTransition>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+                Lesson Plan
+              </h1>
+            </div>
+          </div>
+          <CardSkeleton count={1} />
+        </div>
+      </PageTransition>
     );
   }
 
@@ -158,7 +169,8 @@ const LessonViewPage = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <PageTransition>
+      <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -471,7 +483,8 @@ const LessonViewPage = () => {
           </div>
         </Card>
       )}
-    </div>
+      </div>
+    </PageTransition>
   );
 };
 

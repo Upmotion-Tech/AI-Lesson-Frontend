@@ -1,12 +1,15 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
 import { fetchAllLessonPlans } from "../store/lessonThunks.js";
 import Card from "../components/common/Card.jsx";
-import Loader from "../components/common/Loader.jsx";
+import Button from "../components/common/Button.jsx";
 import Badge from "../components/common/Badge.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
+import { LessonPlanCardSkeleton } from "../components/common/Skeleton.jsx";
+import PageTransition from "../components/common/PageTransition.jsx";
 import { formatDateShort, truncateText } from "../utils/formatters.js";
 import {
   FileText,
@@ -17,7 +20,6 @@ import {
   Sparkles,
   Search,
 } from "lucide-react";
-import { useState } from "react";
 
 const LessonPlansPage = () => {
   const dispatch = useAppDispatch();
@@ -41,14 +43,29 @@ const LessonPlansPage = () => {
 
   if (status === "loading") {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader size="lg" />
-      </div>
+      <PageTransition>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                </div>
+                <span>My Lesson Plans</span>
+              </h1>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <LessonPlanCardSkeleton count={6} />
+          </div>
+        </div>
+      </PageTransition>
     );
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <PageTransition>
+      <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -62,13 +79,12 @@ const LessonPlansPage = () => {
             View and manage all your generated lesson plans
           </p>
         </div>
-        <button
+        <Button
           onClick={() => navigate("/generate-lesson")}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity font-medium"
+          icon={<Sparkles className="h-4 w-4" />}
         >
-          <Sparkles className="h-4 w-4" />
           Generate New
-        </button>
+        </Button>
       </div>
 
       {/* Search Bar */}
@@ -103,13 +119,34 @@ const LessonPlansPage = () => {
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredPlans.map((plan) => (
-            <Card
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1,
+              },
+            },
+          }}
+        >
+          {filteredPlans.map((plan, index) => (
+            <motion.div
               key={plan._id}
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-primary group"
-              onClick={() => navigate(`/lessons/${plan._id}`)}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0 },
+              }}
+              transition={{ duration: 0.3 }}
             >
+              <Card
+                className="border-l-4 border-l-primary group"
+                clickable
+                onClick={() => navigate(`/lessons/${plan._id}`)}
+              >
               <div className="space-y-4">
                 {/* Header */}
                 <div className="flex items-start justify-between gap-2">
@@ -196,8 +233,9 @@ const LessonPlansPage = () => {
                 </div>
               </div>
             </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Stats */}
@@ -215,7 +253,8 @@ const LessonPlansPage = () => {
           </div>
         </Card>
       )}
-    </div>
+      </div>
+    </PageTransition>
   );
 };
 
