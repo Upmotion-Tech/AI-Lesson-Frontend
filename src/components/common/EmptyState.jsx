@@ -12,7 +12,7 @@ const EmptyState = ({
   className = "",
   illustration,
 }) => {
-  const IconComponent = icon;
+  const IconComponent = Icon;
 
   const containerVariants = {
     initial: { opacity: 0, y: 20 },
