@@ -4,7 +4,6 @@ import Sidebar from "./Sidebar.jsx";
 
 const AppLayout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -32,17 +31,10 @@ const AppLayout = ({ children }) => {
   const handleToggleMenu = () =>
     setIsMobileMenuOpen((previousState) => !previousState);
   const handleCloseMenu = () => setIsMobileMenuOpen(false);
-  const handleToggleSidebarCollapse = () =>
-    setIsSidebarCollapsed((previousState) => !previousState);
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      <Sidebar
-        isMobileOpen={isMobileMenuOpen}
-        onClose={handleCloseMenu}
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={handleToggleSidebarCollapse}
-      />
+      <Sidebar isMobileOpen={isMobileMenuOpen} onClose={handleCloseMenu} />
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
         <Header
           onToggleMenu={handleToggleMenu}

@@ -17,22 +17,20 @@ const LoginForm = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    rememberMe: false,
   });
 
   const [validationErrors, setValidationErrors] = useState({});
 
   const handleChange = (e) => {
-    const { name, type, value, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === "checkbox" ? checked : value,
+      [e.target.name]: e.target.value,
     });
 
-    if (validationErrors[name]) {
+    if (validationErrors[e.target.name]) {
       setValidationErrors({
         ...validationErrors,
-        [name]: "",
+        [e.target.name]: "",
       });
     }
   };
@@ -44,17 +42,10 @@ const LoginForm = () => {
       await loginSchema.validate(formData, { abortEarly: false });
       setValidationErrors({});
 
-      const { email, password, rememberMe } = formData;
-      const result = await dispatch(login({ email, password, rememberMe }));
+      const result = await dispatch(login(formData));
       if (login.fulfilled.match(result)) {
-        toast.success("Verification code sent to your email");
-        navigate("/otp", {
-          replace: true,
-          state: {
-            email: formData.email,
-            fromLogin: true,
-          },
-        });
+        toast.success("Logged in successfully");
+        navigate("/");
       } else {
         const message =
           result.payload || result.error?.message || "Login failed";
@@ -96,18 +87,6 @@ const LoginForm = () => {
         required
         showPasswordToggle
       />
-      <div className="flex items-center justify-between">
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <input
-            type="checkbox"
-            name="rememberMe"
-            checked={formData.rememberMe}
-            onChange={handleChange}
-            className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
-          />
-          Remember me
-        </label>
-      </div>
 
       <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? "Logging in..." : "Login"}

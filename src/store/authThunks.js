@@ -3,12 +3,11 @@ import apiClient from "../utils/apiClient.js";
 
 export const login = createAsyncThunk(
   "auth/login",
-  async ({ email, password, rememberMe }, { rejectWithValue }) => {
+  async ({ email, password }, { rejectWithValue }) => {
     try {
       const response = await apiClient.post("/auth/login", {
         email,
         password,
-        rememberMe,
       });
       return response.data;
     } catch (error) {
@@ -23,7 +22,7 @@ export const login = createAsyncThunk(
 
 export const signup = createAsyncThunk(
   "auth/signup",
-  async ({ name, email, password }, { rejectWithValue }) => {
+  async ({ name, email, password}, { rejectWithValue }) => {
     try {
       const response = await apiClient.post("/auth/signup", {
         name,
@@ -38,7 +37,6 @@ export const signup = createAsyncThunk(
         const loginResponse = await apiClient.post("/auth/login", {
           email,
           password,
-          rememberMe: false,
         });
         return loginResponse.data;
       }
@@ -65,44 +63,6 @@ export const fetchMe = createAsyncThunk(
       localStorage.removeItem("token");
       const errorMessage =
         error.response?.data?.message || error.message || "Session expired";
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
-
-export const verifyLoginOtp = createAsyncThunk(
-  "auth/verifyLoginOtp",
-  async ({ otpCode, otpToken, rememberMe }, { rejectWithValue }) => {
-    try {
-      const response = await apiClient.post("/auth/verify-otp", {
-        otpCode,
-        otpToken,
-        rememberMe,
-      });
-      return response.data;
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "OTP verification failed. Please try again.";
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
-
-export const resendLoginOtp = createAsyncThunk(
-  "auth/resendLoginOtp",
-  async ({ otpToken }, { rejectWithValue }) => {
-    try {
-      const response = await apiClient.post("/auth/resend-otp", {
-        otpToken,
-      });
-      return response.data;
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to resend verification code.";
       return rejectWithValue(errorMessage);
     }
   }

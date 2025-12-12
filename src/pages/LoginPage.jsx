@@ -7,18 +7,13 @@ import LoginForm from "../components/LoginForm.jsx";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { user, token, otpRequired } = useAppSelector((state) => state.auth);
+  const { user, token } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (otpRequired) {
-      navigate("/otp", { replace: true });
-      return;
-    }
-
     if (user && token) {
       navigate("/", { replace: true });
     }
-  }, [user, token, otpRequired, navigate]);
+  }, [user, token, navigate]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -29,7 +24,7 @@ const LoginPage = () => {
             <Sparkles className="h-5 w-5 text-primary" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-            AI Lesson
+            AI Lesson Planner
           </h1>
           <p className="text-sm text-muted-foreground">
             Intelligent lesson planning made simple

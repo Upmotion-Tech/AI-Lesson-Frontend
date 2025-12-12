@@ -8,7 +8,7 @@ const EmptyState = ({
   description,
   actionLabel,
   onAction,
-  icon = Inbox,
+  icon: Icon = Inbox,
   className = "",
   illustration,
 }) => {

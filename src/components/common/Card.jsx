@@ -50,22 +50,10 @@ const Card = ({
       }
       {...props}
     >
-      {hasHeader && (
-        <div
-          className={`mb-4 flex flex-wrap items-start gap-3 sm:gap-4 ${headerClassName}`}
-        >
-          <div className="flex-1 min-w-[180px]">
-            {title && (
-              <TitleTag className="text-base sm:text-lg font-semibold text-card-foreground">
-                {title}
-              </TitleTag>
-            )}
-            {description && (
-              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-            )}
-          </div>
-          {action && <div className="shrink-0">{action}</div>}
-        </div>
+      {title && (
+        <h3 className="text-base sm:text-lg font-semibold text-card-foreground mb-4">
+          {title}
+        </h3>
       )}
       <div className={bodyClassName}>{children}</div>
     </CardWrapper>

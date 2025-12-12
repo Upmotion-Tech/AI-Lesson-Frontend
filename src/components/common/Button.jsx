@@ -29,7 +29,8 @@ const Button = ({
       "bg-primary text-primary-foreground hover:opacity-90 focus:ring-primary shadow-sm hover:shadow-md hover:shadow-primary/20",
     secondary:
       "bg-secondary text-foreground hover:bg-secondary/80 focus:ring-secondary",
-    ghost: "hover:bg-muted text-foreground focus:ring-muted",
+    ghost:
+      "hover:bg-muted text-foreground focus:ring-muted",
     outline:
       "border-2 border-border text-foreground hover:bg-muted focus:ring-border hover:border-primary/50",
     danger:
