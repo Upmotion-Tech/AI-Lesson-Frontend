@@ -223,9 +223,9 @@ const OtpVerificationPage = () => {
             {error && (
               <p className="text-sm text-destructive text-center">{error}</p>
             )}
-            <Button type="submit" disabled={isSubmitting} className="w-full">
+            {/* <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? "Verifying..." : "Verify & Continue"}
-            </Button>
+            </Button> */}
             <div className="text-center text-sm text-muted-foreground space-y-2">
               <p>
                 Didn&apos;t receive a code?{" "}

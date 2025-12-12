@@ -3,9 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
-import { fetchLessonPlan, updateLessonPlan } from "../store/lessonThunks.js";
+import { fetchLessonPlan, updateLessonPlan, deleteLessonPlan } from "../store/lessonThunks.js";
 import Card from "../components/common/Card.jsx";
 import Button from "../components/common/Button.jsx";
+import Modal from "../components/common/Modal.jsx";
 import ErrorMessage from "../components/common/ErrorMessage.jsx";
 import { CardSkeleton } from "../components/common/Skeleton.jsx";
 import PageTransition from "../components/common/PageTransition.jsx";
@@ -18,6 +19,8 @@ import {
   Save,
   Edit2,
   X,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import apiClient from "../utils/apiClient.js";
 
@@ -32,6 +35,8 @@ const LessonViewPage = () => {
   const [activeTab, setActiveTab] = useState("base");
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -139,6 +144,26 @@ const LessonViewPage = () => {
 
   const currentPlan = getCurrentPlan();
 
+  const handleDeleteClick = () => {
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await dispatch(deleteLessonPlan(id)).unwrap();
+      toast.success("Lesson plan deleted successfully");
+      navigate("/lessons");
+    } catch (error) {
+      toast.error(error || "Failed to delete lesson plan");
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalOpen(false);
+  };
+
   if (status === "loading") {
     return (
       <PageTransition>
@@ -208,6 +233,14 @@ const LessonViewPage = () => {
           >
             <FileDown className="h-4 w-4" />
             Word
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleDeleteClick}
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
           </Button>
         </div>
       </div>
@@ -483,6 +516,55 @@ const LessonViewPage = () => {
           </div>
         </Card>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={handleCancelDelete}
+        title="Delete Lesson Plan"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-danger/10 rounded-lg">
+              <AlertTriangle className="h-5 w-5 text-danger" />
+            </div>
+            <div className="flex-1">
+              <p className="text-foreground font-medium mb-1">
+                Are you sure you want to delete this lesson plan?
+              </p>
+              <p className="text-sm text-muted-foreground">
+                This action cannot be undone. The lesson plan and all its tier plans will be permanently deleted.
+              </p>
+              {lessonPlan && (
+                <div className="mt-3 p-3 bg-muted rounded-lg border border-border">
+                  <p className="text-xs text-muted-foreground mb-1">Lesson Plan:</p>
+                  <p className="text-sm font-medium text-foreground line-clamp-2">
+                    {lessonPlan.objective || "Untitled Lesson Plan"}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Button
+              variant="outline"
+              onClick={handleCancelDelete}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleConfirmDelete}
+              loading={isDeleting}
+              icon={<Trash2 className="h-4 w-4" />}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
       </div>
     </PageTransition>
   );

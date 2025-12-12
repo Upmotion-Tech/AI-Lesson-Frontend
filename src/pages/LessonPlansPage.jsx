@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
-import { fetchAllLessonPlans } from "../store/lessonThunks.js";
+import { fetchAllLessonPlans, deleteLessonPlan } from "../store/lessonThunks.js";
 import Card from "../components/common/Card.jsx";
 import Button from "../components/common/Button.jsx";
 import Badge from "../components/common/Badge.jsx";
 import EmptyState from "../components/common/EmptyState.jsx";
+import Modal from "../components/common/Modal.jsx";
 import { LessonPlanCardSkeleton } from "../components/common/Skeleton.jsx";
 import PageTransition from "../components/common/PageTransition.jsx";
 import { formatDateShort, truncateText } from "../utils/formatters.js";
@@ -19,6 +21,8 @@ import {
   ArrowRight,
   Sparkles,
   Search,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 
 const LessonPlansPage = () => {
@@ -26,6 +30,9 @@ const LessonPlansPage = () => {
   const navigate = useNavigate();
   const { list: lessonPlans, status } = useAppSelector((state) => state.lessons);
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [lessonToDelete, setLessonToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchAllLessonPlans());
@@ -40,6 +47,33 @@ const LessonPlansPage = () => {
       plan.standard?.description?.toLowerCase().includes(query)
     );
   });
+
+  const handleDeleteClick = (e, plan) => {
+    e.stopPropagation(); // Prevent card navigation
+    setLessonToDelete(plan);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!lessonToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await dispatch(deleteLessonPlan(lessonToDelete._id)).unwrap();
+      toast.success("Lesson plan deleted successfully");
+      setDeleteModalOpen(false);
+      setLessonToDelete(null);
+    } catch (error) {
+      toast.error(error || "Failed to delete lesson plan");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalOpen(false);
+    setLessonToDelete(null);
+  };
 
   if (status === "loading") {
     return (
@@ -143,7 +177,7 @@ const LessonPlansPage = () => {
               transition={{ duration: 0.3 }}
             >
               <Card
-                className="border-l-4 border-l-primary group"
+                className="border-l-4 border-l-primary group relative"
                 clickable
                 onClick={() => navigate(`/lessons/${plan._id}`)}
               >
@@ -160,12 +194,22 @@ const LessonPlansPage = () => {
                       </p>
                     )}
                   </div>
-                  <Badge
-                    variant={plan.status === "PUBLISHED" ? "success" : "warning"}
-                    className="shrink-0"
-                  >
-                    {plan.status || "DRAFT"}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={plan.status === "PUBLISHED" ? "success" : "warning"}
+                      className="shrink-0"
+                    >
+                      {plan.status || "DRAFT"}
+                    </Badge>
+                    <button
+                      onClick={(e) => handleDeleteClick(e, plan)}
+                      className="p-1.5 rounded-lg hover:bg-danger/10 text-muted-foreground hover:text-danger transition-colors opacity-0 group-hover:opacity-100"
+                      title="Delete lesson plan"
+                      aria-label="Delete lesson plan"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Standard Info */}
@@ -253,6 +297,55 @@ const LessonPlansPage = () => {
           </div>
         </Card>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={handleCancelDelete}
+        title="Delete Lesson Plan"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-danger/10 rounded-lg">
+              <AlertTriangle className="h-5 w-5 text-danger" />
+            </div>
+            <div className="flex-1">
+              <p className="text-foreground font-medium mb-1">
+                Are you sure you want to delete this lesson plan?
+              </p>
+              <p className="text-sm text-muted-foreground">
+                This action cannot be undone. The lesson plan and all its tier plans will be permanently deleted.
+              </p>
+              {lessonToDelete && (
+                <div className="mt-3 p-3 bg-muted rounded-lg border border-border">
+                  <p className="text-xs text-muted-foreground mb-1">Lesson Plan:</p>
+                  <p className="text-sm font-medium text-foreground line-clamp-2">
+                    {lessonToDelete.objective || "Untitled Lesson Plan"}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Button
+              variant="outline"
+              onClick={handleCancelDelete}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleConfirmDelete}
+              loading={isDeleting}
+              icon={<Trash2 className="h-4 w-4" />}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
       </div>
     </PageTransition>
   );

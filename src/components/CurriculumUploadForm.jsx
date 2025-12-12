@@ -248,8 +248,10 @@ const CurriculumUploadForm = () => {
           <Loader size="sm" />
         ) : (
           <>
-            <CloudUpload className="h-5 w-5" />
-            Upload Curriculum
+            <div className="flex items-center justify-center gap-2">
+              <CloudUpload className="h-5 w-5" />
+              Upload Curriculum
+            </div>
           </>
         )}
       </Button>
