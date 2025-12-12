@@ -1,5 +1,15 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, BookOpen, Users, Sparkles } from "lucide-react";
+import {
+  LayoutDashboard,
+  BookOpen,
+  Users,
+  Sparkles,
+  PanelLeftClose,
+  PanelLeftOpen,
+  FileText,
+} from "lucide-react";
+import AiLesson from "../../assets/Ai-lesson.png";
+import AiLessonLogo from "../../assets/Ai-lesson-logo.png";
 
 const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
   const navItems = [
@@ -7,6 +17,7 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
     { path: "/upload-curriculum", label: "Upload Curriculum", icon: BookOpen },
     { path: "/upload-students", label: "Upload Students", icon: Users },
     { path: "/generate-lesson", label: "Generate Lesson", icon: Sparkles },
+    { path: "/lessons", label: "My Lesson Plans", icon: FileText },
   ];
 
   return (

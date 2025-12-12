@@ -1,12 +1,14 @@
 import { useEffect } from "react";
+import { motion } from "framer-motion";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
 import { fetchLatestCurriculum } from "../store/curriculumThunks.js";
 import { fetchLatestStudentData } from "../store/studentDataThunks.js";
 import LessonGeneratePlaceholder from "../components/LessonGeneratePlaceholder.jsx";
 import Card from "../components/common/Card.jsx";
-import Loader from "../components/common/Loader.jsx";
+import { CardSkeleton } from "../components/common/Skeleton.jsx";
 import Badge from "../components/common/Badge.jsx";
+import PageTransition from "../components/common/PageTransition.jsx";
 import { formatDateShort, truncateText } from "../utils/formatters.js";
 import { Sparkles, BookOpen, Users, TrendingUp } from "lucide-react";
 
@@ -43,14 +45,27 @@ const GenerateLessonPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader size="lg" />
-      </div>
+      <PageTransition>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="pb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+              </div>
+              <span>Generate Lesson Plan</span>
+            </h1>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <CardSkeleton count={2} />
+          </div>
+        </div>
+      </PageTransition>
     );
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <PageTransition>
+      <div className="space-y-4 sm:space-y-6">
       <div className="pb-2">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
           <div className="p-2 bg-primary/10 rounded-lg">
@@ -141,7 +156,8 @@ const GenerateLessonPage = () => {
       <Card title="Generate Lesson Plan" className="border-l-4 border-l-primary">
         <LessonGeneratePlaceholder />
       </Card>
-    </div>
+      </div>
+    </PageTransition>
   );
 };
 
