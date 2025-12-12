@@ -3,33 +3,54 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
-import { fetchLatestCurriculum } from "../store/curriculumThunks.js";
-import { fetchLatestStudentData } from "../store/studentDataThunks.js";
+import { fetchAllCurricula } from "../store/curriculumThunks.js";
+import { fetchAllStudentData } from "../store/studentDataThunks.js";
+import { fetchAllLessonPlans } from "../store/lessonThunks.js";
 import Card from "../components/common/Card.jsx";
 import Button from "../components/common/Button.jsx";
 import { CardSkeleton } from "../components/common/Skeleton.jsx";
 import Badge from "../components/common/Badge.jsx";
 import PageTransition from "../components/common/PageTransition.jsx";
+import TierDistributionChart from "../components/analytics/TierDistributionChart.jsx";
+import LessonPlansChart from "../components/analytics/LessonPlansChart.jsx";
+import ResourceCountChart from "../components/analytics/ResourceCountChart.jsx";
 import { formatDateShort } from "../utils/formatters.js";
-import { BookOpen, Users, Sparkles, TrendingUp, FileText } from "lucide-react";
+import {
+  BookOpen,
+  Users,
+  Sparkles,
+  TrendingUp,
+  FileText,
+  BarChart3,
+  Activity,
+} from "lucide-react";
 
 const DashboardPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { latest: curriculum, status: curriculumStatus } = useAppSelector(
+  const { list: curricula, status: curriculumStatus } = useAppSelector(
     (state) => state.curriculum
   );
-  const { latest: studentData, status: studentDataStatus } = useAppSelector(
+  const { list: studentDataList, status: studentDataStatus } = useAppSelector(
     (state) => state.studentData
+  );
+  const { list: lessons, status: lessonsStatus } = useAppSelector(
+    (state) => state.lessons
   );
 
   useEffect(() => {
-    dispatch(fetchLatestCurriculum());
-    dispatch(fetchLatestStudentData());
+    dispatch(fetchAllCurricula());
+    dispatch(fetchAllStudentData());
+    dispatch(fetchAllLessonPlans());
   }, [dispatch]);
 
   const isLoading =
-    curriculumStatus === "loading" || studentDataStatus === "loading";
+    curriculumStatus === "loading" ||
+    studentDataStatus === "loading" ||
+    lessonsStatus === "loading";
+
+  const latestCurriculum = curricula[0];
+  const latestStudentData = studentDataList[0];
 
   const getTierDistribution = (students) => {
     if (!students || students.length === 0)
@@ -43,7 +64,25 @@ const DashboardPage = () => {
     );
   };
 
-  const tierDist = getTierDistribution(studentData?.students);
+  // Aggregate tier distribution across all student data
+  const aggregateTierDist = studentDataList.reduce(
+    (acc, studentData) => {
+      const dist = getTierDistribution(studentData.students);
+      acc.tier1 += dist.tier1;
+      acc.tier2 += dist.tier2;
+      acc.tier3 += dist.tier3;
+      return acc;
+    },
+    { tier1: 0, tier2: 0, tier3: 0 }
+  );
+
+  const tierDist = getTierDistribution(latestStudentData?.students);
+
+  // Calculate total students across all records
+  const totalStudents = studentDataList.reduce(
+    (sum, sd) => sum + (sd.students?.length || 0),
+    0
+  );
 
   if (isLoading) {
     return (
@@ -89,7 +128,7 @@ const DashboardPage = () => {
           }}
         >
           {/* Curriculum Card */}
-          <motion.div
+          {/* <motion.div
             variants={{
               hidden: { opacity: 0, y: 20 },
               show: { opacity: 1, y: 0 },
@@ -107,23 +146,32 @@ const DashboardPage = () => {
                     </h3>
                   </div>
 
-                  {curriculum ? (
+                  {latestCurriculum ? (
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <FileText className="h-4 w-4" />
                         <span>
-                          Last uploaded: {formatDateShort(curriculum.createdAt)}
+                          Last uploaded:{" "}
+                          {formatDateShort(latestCurriculum.createdAt)}
                         </span>
                       </div>
                       <div className="p-2 bg-success/10 rounded-lg border border-success/20">
                         <p className="text-xs text-muted-foreground">
+                          Total Curricula
+                        </p>
+                        <p className="text-lg font-bold text-success">
+                          {curricula.length}
+                        </p>
+                      </div>
+                      <div className="p-2 bg-primary/10 rounded-lg border border-primary/20">
+                        <p className="text-xs text-muted-foreground">
                           Content Size
                         </p>
-                        <p className="text-sm font-semibold text-success">
-                          {curriculum.rawText
-                            ? `${(curriculum.rawText.length / 1000).toFixed(
-                                1
-                              )}K characters`
+                        <p className="text-sm font-semibold text-primary">
+                          {latestCurriculum.rawText
+                            ? `${(
+                                latestCurriculum.rawText.length / 1000
+                              ).toFixed(1)}K characters`
                             : "No text content"}
                         </p>
                       </div>
@@ -144,18 +192,17 @@ const DashboardPage = () => {
                 >
                   <div className="flex items-center justify-center gap-2">
                     <div className="flex items-center justify-center gap-2">
-
-                    <BookOpen className="h-4 w-4" />
-                    <span>Upload Curriculum</span>
+                      <BookOpen className="h-4 w-4" />
+                      <span>Upload Curriculum</span>
                     </div>
                   </div>
                 </Button>
               </div>
             </Card>
-          </motion.div>
+          </motion.div> */}
 
           {/* Student Data Card */}
-          <motion.div
+          {/* <motion.div
             variants={{
               hidden: { opacity: 0, y: 20 },
               show: { opacity: 1, y: 0 },
@@ -171,20 +218,29 @@ const DashboardPage = () => {
                     Student Data
                   </h3>
                 </div>
-                {studentData ? (
+                {latestStudentData ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <TrendingUp className="h-4 w-4" />
                       <span>
-                        Last uploaded: {formatDateShort(studentData.createdAt)}
+                        Last uploaded:{" "}
+                        {formatDateShort(latestStudentData.createdAt)}
                       </span>
                     </div>
                     <div className="p-2 bg-primary/10 rounded-lg border border-primary/20">
                       <p className="text-xs text-muted-foreground">
-                        Total Students
+                        Total Records
                       </p>
                       <p className="text-lg font-bold text-primary">
-                        {studentData.students?.length || 0}
+                        {studentDataList.length}
+                      </p>
+                    </div>
+                    <div className="p-2 bg-success/10 rounded-lg border border-success/20">
+                      <p className="text-xs text-muted-foreground">
+                        Total Students
+                      </p>
+                      <p className="text-lg font-bold text-success">
+                        {totalStudents}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -219,10 +275,10 @@ const DashboardPage = () => {
                 </Button>
               </div>
             </Card>
-          </motion.div>
+          </motion.div> */}
 
           {/* Lesson Generation Card */}
-          <motion.div
+          {/* <motion.div
             variants={{
               hidden: { opacity: 0, y: 20 },
               show: { opacity: 1, y: 0 },
@@ -260,8 +316,107 @@ const DashboardPage = () => {
                 </Button>
               </div>
             </Card>
-          </motion.div>
+          </motion.div> */}
         </motion.div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="border-l-4 border-l-primary">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Total Curricula</p>
+                <p className="text-2xl font-bold text-primary">
+                  {curricula.length}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="border-l-4 border-l-success">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-success/10 rounded-lg">
+                <Users className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Total Students</p>
+                <p className="text-2xl font-bold text-success">
+                  {totalStudents}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="border-l-4 border-l-warning">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-warning/10 rounded-lg">
+                <Sparkles className="h-5 w-5 text-warning" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Lesson Plans</p>
+                <p className="text-2xl font-bold text-warning">
+                  {lessons.length}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="border-l-4 border-l-primary">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Activity className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Student Records</p>
+                <p className="text-2xl font-bold text-primary">
+                  {studentDataList.length}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Analytics Section */}
+        <div className="space-y-4 sm:space-y-6">
+          {/* <div className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold text-foreground">Analytics</h2>
+          </div> */}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            {/* Resource Count Chart */}
+            <Card
+              title="Resource Overview"
+              className="border-l-4 border-l-primary"
+            >
+              <ResourceCountChart
+                curricula={curricula}
+                studentData={studentDataList}
+                lessons={lessons}
+              />
+            </Card>
+
+            {/* Tier Distribution Chart */}
+            <Card
+              title="Tier Distribution"
+              className="border-l-4 border-l-success"
+            >
+              <TierDistributionChart data={aggregateTierDist} />
+            </Card>
+          </div>
+
+          {/* Lesson Plans Over Time */}
+          {lessons.length > 0 && (
+            <Card
+              title="Lesson Plans Generated Over Time"
+              className="border-l-4 border-l-primary"
+            >
+              <LessonPlansChart lessons={lessons} />
+            </Card>
+          )}
+        </div>
       </div>
     </PageTransition>
   );
