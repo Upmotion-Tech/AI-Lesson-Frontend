@@ -29,9 +29,11 @@ const StudentDataViewPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { current: studentData, status, error } = useAppSelector(
-    (state) => state.studentData
-  );
+  const {
+    current: studentData,
+    status,
+    error,
+  } = useAppSelector((state) => state.studentData);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -146,8 +148,10 @@ const StudentDataViewPage = () => {
             </div>
           </div>
           <Button variant="danger" onClick={handleDeleteClick}>
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
+            <div className="flex items-center gap-2">
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </div>
           </Button>
         </div>
 
@@ -300,7 +304,9 @@ const StudentDataViewPage = () => {
                 generate new lessons from it.
               </p>
               <div className="mt-3 p-3 bg-muted rounded-lg border border-border">
-                <p className="text-xs text-muted-foreground mb-1">Student Data:</p>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Student Data:
+                </p>
                 <p className="text-sm font-medium text-foreground">
                   {studentData.originalFilename || "Untitled Student Data"}
                 </p>
@@ -334,4 +340,3 @@ const StudentDataViewPage = () => {
 };
 
 export default StudentDataViewPage;
-

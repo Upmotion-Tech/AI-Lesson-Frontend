@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import LoginPage from "../pages/LoginPage.jsx";
 import SignupPage from "../pages/SignupPage.jsx";
+import OtpVerificationPage from "../pages/OtpVerificationPage.jsx";
 import DashboardPage from "../pages/DashboardPage.jsx";
 import UploadCurriculumPage from "../pages/UploadCurriculumPage.jsx";
 import UploadStudentsPage from "../pages/UploadStudentsPage.jsx";
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/signup",
     element: <SignupPage />,
+  },
+  {
+    path: "/verify-otp",
+    element: <OtpVerificationPage />,
   },
   {
     path: "/",

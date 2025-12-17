@@ -248,8 +248,10 @@ const LessonViewPage = () => {
               className="flex items-center gap-2"
             >
               <div className="flex items-center gap-2">
-                <Trash2 className="h-4 w-4" />
+                <div className="flex items-center gap-2">
+                  <Trash2 className="h-4 w-4 text-danger" />
                 Delete
+                </div>
               </div>
             </Button>
           </div>
