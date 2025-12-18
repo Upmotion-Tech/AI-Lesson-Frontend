@@ -14,7 +14,6 @@ import ThemeToggle from "./ThemeToggle.jsx";
 import IconButton from "../common/IconButton.jsx";
 import AiLesson from "../../assets/Ai-lesson.png";
 import AiLessonLogo from "../../assets/Ai-lesson-logo.png";
-import AiLesson1 from "../../assets/Ai-lesson1.png";
 
 const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
   const [isCollapsed, setIsCollapsed] = useState(() => {
