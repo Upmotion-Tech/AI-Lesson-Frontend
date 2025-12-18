@@ -12,11 +12,12 @@ import { toast } from "react-hot-toast";
 const LoginForm = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { status } = useAppSelector((state) => state.auth);
+  const { status, otpRequired } = useAppSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    rememberMe: false,
   });
 
   const [validationErrors, setValidationErrors] = useState({});
@@ -44,8 +45,16 @@ const LoginForm = () => {
 
       const result = await dispatch(login(formData));
       if (login.fulfilled.match(result)) {
-        toast.success("Logged in successfully");
-        navigate("/");
+        if (result.payload.otpRequired) {
+          // Redirect to OTP verification page
+          navigate("/verify-otp", { 
+            state: { email: formData.email },
+            replace: true 
+          });
+        } else {
+          toast.success("Logged in successfully");
+          navigate("/");
+        }
       } else {
         const message =
           result.payload || result.error?.message || "Login failed";
@@ -87,6 +96,25 @@ const LoginForm = () => {
         required
         showPasswordToggle
       />
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          id="rememberMe"
+          name="rememberMe"
+          checked={formData.rememberMe}
+          onChange={(e) =>
+            setFormData({ ...formData, rememberMe: e.target.checked })
+          }
+          className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+        />
+        <label
+          htmlFor="rememberMe"
+          className="ml-2 block text-sm text-muted-foreground"
+        >
+          Remember me
+        </label>
+      </div>
 
       <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? "Logging in..." : "Login"}

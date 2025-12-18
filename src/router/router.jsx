@@ -1,12 +1,15 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import LoginPage from "../pages/LoginPage.jsx";
 import SignupPage from "../pages/SignupPage.jsx";
+import OtpVerificationPage from "../pages/OtpVerificationPage.jsx";
 import DashboardPage from "../pages/DashboardPage.jsx";
 import UploadCurriculumPage from "../pages/UploadCurriculumPage.jsx";
 import UploadStudentsPage from "../pages/UploadStudentsPage.jsx";
 import GenerateLessonPage from "../pages/GenerateLessonPage.jsx";
 import LessonViewPage from "../pages/LessonViewPage.jsx";
 import LessonPlansPage from "../pages/LessonPlansPage.jsx";
+import CurriculumViewPage from "../pages/CurriculumViewPage.jsx";
+import StudentDataViewPage from "../pages/StudentDataViewPage.jsx";
 import AppLayout from "../components/layout/AppLayout.jsx";
 import RequireAuth from "./RequireAuth.jsx";
 
@@ -18,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/signup",
     element: <SignupPage />,
+  },
+  {
+    path: "/verify-otp",
+    element: <OtpVerificationPage />,
   },
   {
     path: "/",
@@ -76,6 +83,26 @@ const router = createBrowserRouter([
       <RequireAuth>
         <AppLayout>
           <LessonViewPage />
+        </AppLayout>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/curriculum/:id",
+    element: (
+      <RequireAuth>
+        <AppLayout>
+          <CurriculumViewPage />
+        </AppLayout>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/students/:id",
+    element: (
+      <RequireAuth>
+        <AppLayout>
+          <StudentDataViewPage />
         </AppLayout>
       </RequireAuth>
     ),

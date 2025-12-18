@@ -7,23 +7,24 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 
-const LessonGeneratePlaceholder = () => {
+const LessonGeneratePlaceholder = ({
+  selectedCurriculumId,
+  selectedStudentDataId,
+}) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { status, error } = useAppSelector((state) => state.lessons);
-  const { latest: curriculum } = useAppSelector((state) => state.curriculum);
-  const { latest: studentData } = useAppSelector((state) => state.studentData);
 
   const handleGenerate = async () => {
-    if (!curriculum || !studentData) {
-      toast.error("Please upload both curriculum and student data first");
+    if (!selectedCurriculumId || !selectedStudentDataId) {
+      toast.error("Please select both curriculum and student data");
       return;
     }
 
     const result = await dispatch(
       generateLesson({
-        curriculumId: curriculum._id,
-        studentDataId: studentData._id,
+        curriculumId: selectedCurriculumId,
+        studentDataId: selectedStudentDataId,
       })
     );
 
@@ -39,7 +40,7 @@ const LessonGeneratePlaceholder = () => {
   };
 
   const isLoading = status === "loading";
-  const canGenerate = curriculum && studentData;
+  const canGenerate = selectedCurriculumId && selectedStudentDataId;
 
   return (
     <div className="space-y-4">
@@ -53,8 +54,8 @@ const LessonGeneratePlaceholder = () => {
               Missing Requirements
             </p>
             <ul className="text-sm text-muted-foreground space-y-1">
-              {!curriculum && <li>• Upload curriculum document</li>}
-              {!studentData && <li>• Upload student data</li>}
+              {!selectedCurriculumId && <li>• Select a curriculum</li>}
+              {!selectedStudentDataId && <li>• Select student data</li>}
             </ul>
           </div>
         </div>

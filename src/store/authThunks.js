@@ -3,11 +3,12 @@ import apiClient from "../utils/apiClient.js";
 
 export const login = createAsyncThunk(
   "auth/login",
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ email, password, rememberMe }, { rejectWithValue }) => {
     try {
       const response = await apiClient.post("/auth/login", {
         email,
         password,
+        rememberMe,
       });
       return response.data;
     } catch (error) {
@@ -63,6 +64,44 @@ export const fetchMe = createAsyncThunk(
       localStorage.removeItem("token");
       const errorMessage =
         error.response?.data?.message || error.message || "Session expired";
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const verifyLoginOtp = createAsyncThunk(
+  "auth/verifyLoginOtp",
+  async ({ otpToken, otpCode, rememberMe }, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post("/auth/verify-otp", {
+        otpToken,
+        otpCode,
+        rememberMe,
+      });
+      return response.data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "OTP verification failed. Please try again.";
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const resendLoginOtp = createAsyncThunk(
+  "auth/resendLoginOtp",
+  async ({ otpToken }, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post("/auth/resend-otp", {
+        otpToken,
+      });
+      return response.data;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to resend OTP. Please try again.";
       return rejectWithValue(errorMessage);
     }
   }

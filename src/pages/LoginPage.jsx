@@ -7,13 +7,15 @@ import LoginForm from "../components/LoginForm.jsx";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { user, token } = useAppSelector((state) => state.auth);
+  const { user, token, otpRequired } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (user && token) {
+    if (otpRequired) {
+      navigate("/verify-otp", { replace: true });
+    } else if (user && token) {
       navigate("/", { replace: true });
     }
-  }, [user, token, navigate]);
+  }, [user, token, otpRequired, navigate]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
