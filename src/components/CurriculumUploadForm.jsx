@@ -36,7 +36,7 @@ const helperHighlights = [
   },
 ];
 
-const CurriculumUploadForm = () => {
+const CurriculumUploadForm = ({ onSuccess }) => {
   const dispatch = useAppDispatch();
   const { uploadStatus, error } = useAppSelector((state) => state.curriculum);
   const [file, setFile] = useState(null);
@@ -96,16 +96,23 @@ const CurriculumUploadForm = () => {
     }
 
     try {
-      await toast.promise(dispatch(uploadCurriculum({ file })).unwrap(), {
-        loading: "Uploading curriculum...",
-        success: "Curriculum uploaded successfully",
-        error: (err) =>
-          (typeof err === "string" && err) || err?.message || "Upload failed",
-      });
+      const result = await toast.promise(
+        dispatch(uploadCurriculum({ file })).unwrap(),
+        {
+          loading: "Uploading curriculum...",
+          success: "Curriculum uploaded successfully",
+          error: (err) =>
+            (typeof err === "string" && err) || err?.message || "Upload failed",
+        }
+      );
       setFile(null);
       setFileError("");
       // Reset file input
       e.target.reset();
+
+      if (onSuccess) {
+        onSuccess(result);
+      }
     } catch (err) {
       const message =
         (typeof err === "string" && err) ||

@@ -35,6 +35,8 @@ const StudentPreviewTable = ({ students }) => {
               <Table.Row>
                 <Table.Head className="text-xs sm:text-sm">Name</Table.Head>
                 <Table.Head className="text-xs sm:text-sm">Score</Table.Head>
+                <Table.Head className="text-xs sm:text-sm">Scaled Score</Table.Head>
+                <Table.Head className="text-xs sm:text-sm">Percentile</Table.Head>
                 <Table.Head className="text-xs sm:text-sm">Tier</Table.Head>
               </Table.Row>
             </Table.Header>
@@ -45,7 +47,13 @@ const StudentPreviewTable = ({ students }) => {
                     {student.name}
                   </Table.Cell>
                   <Table.Cell className="text-sm sm:text-base">
-                    {student.score}
+                    {student.score ?? "-"}
+                  </Table.Cell>
+                  <Table.Cell className="text-sm sm:text-base">
+                    {student.scaledScore ?? "-"}
+                  </Table.Cell>
+                  <Table.Cell className="text-sm sm:text-base">
+                    {student.percentileRank ? `${student.percentileRank}%` : "-"}
                   </Table.Cell>
                   <Table.Cell>
                     <Badge

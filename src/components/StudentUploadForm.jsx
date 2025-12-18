@@ -9,7 +9,7 @@ import { studentFileSchema } from "../utils/validators.js";
 import { formatFileSize } from "../utils/formatters.js";
 import { toast } from "react-hot-toast";
 
-const StudentUploadForm = () => {
+const StudentUploadForm = ({ onSuccess }) => {
   const dispatch = useAppDispatch();
   const { uploadStatus, error } = useAppSelector((state) => state.studentData);
   const [file, setFile] = useState(null);
@@ -49,18 +49,23 @@ const StudentUploadForm = () => {
     }
 
     try {
-      await toast.promise(dispatch(uploadStudentData({ file })).unwrap(), {
-        loading: "Uploading student data...",
-        success: "Student data uploaded successfully",
-        error: (err) =>
-          (typeof err === "string" && err) || err?.message || "Upload failed",
-      });
+      const result = await toast.promise(
+        dispatch(uploadStudentData({ file })).unwrap(),
+        {
+          loading: "Uploading student data...",
+          success: "Student data uploaded successfully",
+          error: (err) =>
+            (typeof err === "string" && err) || err?.message || "Upload failed",
+        }
+      );
       setFile(null);
       setFileError("");
       // Reset file input
       e.target.reset();
-      // Note: No need to call fetchLatestStudentData here -
-      // uploadStudentData thunk already fetches it automatically
+      
+      if (onSuccess) {
+        onSuccess(result);
+      }
     } catch (err) {
       const message =
         (typeof err === "string" && err) || err?.message || "Upload failed";

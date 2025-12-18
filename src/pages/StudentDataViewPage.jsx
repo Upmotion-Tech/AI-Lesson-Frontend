@@ -38,6 +38,8 @@ const StudentDataViewPage = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
   useEffect(() => {
     if (id) {
       dispatch(fetchStudentDataById(id));
@@ -87,6 +89,14 @@ const StudentDataViewPage = () => {
       default:
         return "default";
     }
+  };
+
+  const handleRowClick = (student) => {
+    setSelectedStudent(student);
+  };
+
+  const closeStudentModal = () => {
+    setSelectedStudent(null);
   };
 
   if (status === "loading") {
@@ -257,16 +267,32 @@ const StudentDataViewPage = () => {
                     <Table.Row>
                       <Table.Head>Name</Table.Head>
                       <Table.Head>Score</Table.Head>
+                      <Table.Head>Scaled Score</Table.Head>
+                      <Table.Head>Projected SS</Table.Head>
+                      <Table.Head>Percentile Rank</Table.Head>
                       <Table.Head>Tier</Table.Head>
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
                     {studentData.students.map((student, idx) => (
-                      <Table.Row key={idx} className="hover:bg-muted/50">
+                      <Table.Row
+                        key={idx}
+                        className="hover:bg-muted/50 cursor-pointer"
+                        onClick={() => handleRowClick(student)}
+                      >
                         <Table.Cell className="font-medium">
                           {student.name}
                         </Table.Cell>
-                        <Table.Cell>{student.score}</Table.Cell>
+                        <Table.Cell>{student.score ?? "-"}</Table.Cell>
+                        <Table.Cell>{student.scaledScore ?? "-"}</Table.Cell>
+                        <Table.Cell>
+                          {student.projectedScaledScore ?? "-"}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {student.percentileRank
+                            ? `${student.percentileRank}%`
+                            : "-"}
+                        </Table.Cell>
                         <Table.Cell>
                           <Badge variant={getTierVariant(student.tier)}>
                             Tier {student.tier}
@@ -334,6 +360,106 @@ const StudentDataViewPage = () => {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Student Details Modal */}
+      <Modal
+        isOpen={!!selectedStudent}
+        onClose={closeStudentModal}
+        title="Student Details"
+        size="xl"
+      >
+        {selectedStudent && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Name</p>
+                <p className="font-medium text-lg">{selectedStudent.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Tier</p>
+                <Badge variant={getTierVariant(selectedStudent.tier)}>
+                  Tier {selectedStudent.tier}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Score</p>
+                <p className="font-medium">{selectedStudent.score ?? "-"}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Scaled Score</p>
+                <p className="font-medium">
+                  {selectedStudent.scaledScore ?? "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Projected Scaled Score
+                </p>
+                <p className="font-medium">
+                  {selectedStudent.projectedScaledScore ?? "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Percentile Rank</p>
+                <p className="font-medium">
+                  {selectedStudent.percentileRank
+                    ? `${selectedStudent.percentileRank}%`
+                    : "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Grade</p>
+                <p className="font-medium">{selectedStudent.grade ?? "-"}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Benchmark Category
+                </p>
+                <p className="font-medium">
+                  {selectedStudent.benchmarkCategory ?? "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Test Date</p>
+                <p className="font-medium">{selectedStudent.testDate ?? "-"}</p>
+              </div>
+            </div>
+
+            {selectedStudent.suggestedSkills &&
+              selectedStudent.suggestedSkills.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">
+                    Suggested Skills
+                  </h3>
+                  <div className="bg-muted/30 rounded-lg overflow-hidden border border-border">
+                    <Table>
+                      <Table.Header>
+                        <Table.Row>
+                          <Table.Head>Domain</Table.Head>
+                          <Table.Head>Grade</Table.Head>
+                          <Table.Head>Skill</Table.Head>
+                        </Table.Row>
+                      </Table.Header>
+                      <Table.Body>
+                        {selectedStudent.suggestedSkills.map((skill, index) => (
+                          <Table.Row key={index}>
+                            <Table.Cell>{skill.domain}</Table.Cell>
+                            <Table.Cell>{skill.grade ?? "-"}</Table.Cell>
+                            <Table.Cell>{skill.skill}</Table.Cell>
+                          </Table.Row>
+                        ))}
+                      </Table.Body>
+                    </Table>
+                  </div>
+                </div>
+              )}
+
+            <div className="flex justify-end pt-4">
+              <Button onClick={closeStudentModal}>Close</Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </PageTransition>
   );
