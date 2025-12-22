@@ -34,7 +34,10 @@ const ResourceCountChart = ({ curricula, studentData, lessons }) => {
 
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <BarChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+      <BarChart
+        data={chartData}
+        margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+      >
         <defs>
           <linearGradient id="curricula-gradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#4e6ef2" stopOpacity={1} />
@@ -73,11 +76,28 @@ const ResourceCountChart = ({ curricula, studentData, lessons }) => {
             color: "hsl(var(--card-foreground))",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
           }}
-          cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
+          labelStyle={{
+            color: "hsl(var(--card-foreground))",
+            fontWeight: 600,
+          }}
+          itemStyle={{
+            color: "hsl(var(--card-foreground))",
+          }}
+          cursor={{
+            fill: "hsl(var(--muted))",
+            opacity: 0.1,
+          }}
           formatter={(value) => [value, "Count"]}
         />
         <Legend
-          wrapperStyle={{ fontSize: "0.875rem", color: "hsl(var(--foreground))" }}
+          wrapperStyle={{
+            fontSize: "0.875rem",
+            color: "hsl(var(--foreground))",
+          }}
+          iconType="square"
+          formatter={(value) => (
+            <span style={{ color: "hsl(var(--foreground))" }}>{value}</span>
+          )}
         />
         <Bar
           dataKey="count"
@@ -102,4 +122,3 @@ const ResourceCountChart = ({ curricula, studentData, lessons }) => {
 };
 
 export default ResourceCountChart;
-

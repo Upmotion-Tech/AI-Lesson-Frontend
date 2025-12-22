@@ -8,15 +8,6 @@ import {
 } from "recharts";
 
 const TierDistributionChart = ({ data }) => {
-  // Get computed colors from CSS variables
-  const getColor = (cssVar) => {
-    if (typeof window !== "undefined") {
-      const style = getComputedStyle(document.documentElement);
-      return style.getPropertyValue(cssVar).trim();
-    }
-    return cssVar;
-  };
-
   const chartData = [
     {
       name: "Tier 1 (≥70)",
@@ -48,6 +39,51 @@ const TierDistributionChart = ({ data }) => {
     );
   }
 
+  // Custom label renderer with proper dark mode support
+  const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, name, percent, value }) => {
+    if (value === 0) return null;
+    
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    const labelText = `${name}: ${value} (${(percent * 100).toFixed(0)}%)`;
+
+    return (
+      <g>
+        {/* Text outline for better visibility */}
+        <text
+          x={x}
+          y={y}
+          fill="hsl(var(--card))"
+          textAnchor={x > cx ? "start" : "end"}
+          dominantBaseline="central"
+          fontSize="0.75rem"
+          fontWeight={600}
+          stroke="hsl(var(--card))"
+          strokeWidth={3}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          opacity={0.8}
+        >
+          {labelText}
+        </text>
+        {/* Main text */}
+        <text
+          x={x}
+          y={y}
+          fill="hsl(var(--foreground))"
+          textAnchor={x > cx ? "start" : "end"}
+          dominantBaseline="central"
+          fontSize="0.75rem"
+          fontWeight={600}
+        >
+          {labelText}
+        </text>
+      </g>
+    );
+  };
+
   return (
     <ResponsiveContainer width="100%" height={280}>
       <PieChart>
@@ -70,9 +106,7 @@ const TierDistributionChart = ({ data }) => {
           cx="50%"
           cy="50%"
           labelLine={false}
-          label={({ name, percent, value }) =>
-            value > 0 ? `${name}\n${value} (${(percent * 100).toFixed(0)}%)` : ""
-          }
+          label={renderLabel}
           outerRadius={90}
           innerRadius={40}
           fill="#8884d8"
@@ -98,12 +132,22 @@ const TierDistributionChart = ({ data }) => {
             color: "hsl(var(--card-foreground))",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
           }}
+          labelStyle={{
+            color: "hsl(var(--card-foreground))",
+            fontWeight: 600,
+          }}
+          itemStyle={{
+            color: "hsl(var(--card-foreground))",
+          }}
           formatter={(value, name) => [value, name]}
         />
         <Legend
-          wrapperStyle={{ fontSize: "0.875rem", color: "hsl(var(--foreground))" }}
+          wrapperStyle={{
+            fontSize: "0.875rem",
+            color: "hsl(var(--foreground))",
+          }}
           iconType="circle"
-          formatter={(value, entry) => (
+          formatter={(value) => (
             <span style={{ color: "hsl(var(--foreground))" }}>{value}</span>
           )}
         />
