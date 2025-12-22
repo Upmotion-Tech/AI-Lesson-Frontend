@@ -20,6 +20,8 @@ import {
   Trash2,
   AlertTriangle,
   BookOpen,
+  Sparkles,
+  FileCheck,
 } from "lucide-react";
 import { formatDate } from "../utils/formatters.js";
 
@@ -63,6 +65,20 @@ const CurriculumViewPage = () => {
     setDeleteModalOpen(false);
   };
 
+  // Format the raw text content for better presentation
+  const formatContent = (text) => {
+    if (!text) return "";
+    
+    // Split by double newlines to create paragraphs
+    let formatted = text
+      .split(/\n\s*\n/)
+      .map((para) => para.trim())
+      .filter((para) => para.length > 0)
+      .join("\n\n");
+    
+    return formatted;
+  };
+
   if (status === "loading") {
     return (
       <PageTransition>
@@ -95,10 +111,8 @@ const CurriculumViewPage = () => {
   }
 
   const textContent = curriculum.rawText || "No text content available";
-  const shouldTruncate = textContent.length > 500;
-  const displayText = showFullText
-    ? textContent
-    : textContent.substring(0, 500) + (shouldTruncate ? "..." : "");
+  const formattedContent = formatContent(textContent);
+  const shouldTruncate = textContent.length > 2000;
 
   return (
     <PageTransition>
@@ -115,7 +129,7 @@ const CurriculumViewPage = () => {
             </Button>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-                Curriculum Analysis
+                Curriculum Content
               </h1>
               {curriculum.originalFilename && (
                 <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
@@ -137,89 +151,24 @@ const CurriculumViewPage = () => {
           </Button>
         </div>
 
-        {/* AI Analysis Summary Card */}
-        <div className="grid grid-cols-1 gap-6">
-          <Card className="border-l-4 border-l-primary shadow-md">
-            <div className="space-y-6">
-              {/* Summary Header */}
-              <div className="flex items-center gap-3 border-b border-border pb-4">
-                <div className="p-2 bg-primary/10 rounded-xl">
-                  <BookOpen className="h-6 w-6 text-primary" />
+        {/* Main Content - Curriculum Text */}
+        <Card className="shadow-lg border-2 border-primary/10">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-4 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <FileCheck className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Executive Summary
+                  <h2 className="text-xl font-bold text-foreground">
+                    Curriculum Content
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    AI-generated analysis of the curriculum content
+                    Original content extracted from your uploaded file
                   </p>
                 </div>
               </div>
-
-              {/* Main Content Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Summary Text */}
-                <div className="md:col-span-2 space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                      Content Overview
-                    </h3>
-                    <p className="text-foreground/90 leading-relaxed text-lg">
-                      {curriculum.summary ||
-                        "No summary available. This content will be analyzed when you generate a lesson plan."}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Side Stats */}
-                <div className="space-y-6 md:border-l border-border md:pl-6">
-                  {/* Grade Level */}
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                      Target Grade Level
-                    </h3>
-                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-secondary/20 text-secondary-foreground font-semibold text-sm border border-secondary/30">
-                      {curriculum.gradeLevelEstimate || "Not specified"}
-                    </div>
-                  </div>
-
-                  {/* Topics */}
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                      Key Topics
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {curriculum.topics && curriculum.topics.length > 0 ? (
-                        curriculum.topics.map((topic, idx) => (
-                          <span
-                            key={idx}
-                            className="px-2.5 py-1 rounded-md bg-muted text-muted-foreground text-xs font-medium border border-border"
-                          >
-                            {topic}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-sm text-muted-foreground italic">
-                          No topics detected
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Raw Text Content (Collapsible/Secondary) */}
-          <Card className="bg-muted/30">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Source Content
-                  </h2>
-                </div>
+              {shouldTruncate && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -227,25 +176,106 @@ const CurriculumViewPage = () => {
                 >
                   {showFullText ? "Show Less" : "Show Full Content"}
                 </Button>
-              </div>
-
-              <div
-                className={`text-sm text-muted-foreground font-mono bg-background p-4 rounded-lg border border-border overflow-y-auto transition-all duration-300 ${
-                  showFullText ? "max-h-[600px]" : "max-h-[150px]"
-                }`}
-              >
-                <div className="whitespace-pre-wrap">{textContent}</div>
-              </div>
-              {!showFullText && shouldTruncate && (
-                <p className="text-xs text-center text-muted-foreground italic">
-                  Preview showing first 500 characters. Click "Show Full
-                  Content" to see all {textContent.length.toLocaleString()}{" "}
-                  characters.
-                </p>
               )}
             </div>
+
+            <div
+              className={`prose prose-lg max-w-none text-foreground/90 transition-all duration-300 ${
+                showFullText ? "" : "line-clamp-none"
+              }`}
+            >
+              <div
+                className={`whitespace-pre-wrap leading-7 text-base ${
+                  showFullText
+                    ? "max-h-none"
+                    : "max-h-[600px] overflow-hidden"
+                }`}
+                style={{
+                  fontFamily: "system-ui, -apple-system, sans-serif",
+                }}
+              >
+                {formattedContent}
+              </div>
+              {!showFullText && shouldTruncate && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-sm text-center text-muted-foreground">
+                    Content truncated. Click "Show Full Content" to view all{" "}
+                    {textContent.length.toLocaleString()} characters.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+
+        {/* AI Analysis Section - Secondary */}
+        {(curriculum.summary ||
+          curriculum.topics?.length > 0 ||
+          curriculum.gradeLevelEstimate) && (
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-l-4 border-l-primary">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-border/50">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    AI Analysis
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    AI-generated insights about this curriculum
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Summary */}
+                {curriculum.summary && (
+                  <div className="md:col-span-2 space-y-2">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                      Summary
+                    </h3>
+                    <p className="text-foreground/90 leading-relaxed">
+                      {curriculum.summary}
+                    </p>
+                  </div>
+                )}
+
+                {/* Side Info */}
+                <div className="space-y-4">
+                  {curriculum.gradeLevelEstimate && (
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                        Grade Level
+                      </h3>
+                      <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary/20 text-primary font-semibold text-sm border border-primary/30">
+                        {curriculum.gradeLevelEstimate}
+                      </div>
+                    </div>
+                  )}
+
+                  {curriculum.topics && curriculum.topics.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                        Key Topics
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {curriculum.topics.map((topic, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 rounded-md bg-background/80 text-foreground text-xs font-medium border border-border/50 shadow-sm"
+                          >
+                            {topic}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </Card>
-        </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}
