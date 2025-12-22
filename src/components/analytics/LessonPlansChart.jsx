@@ -76,10 +76,23 @@ const LessonPlansChart = ({ lessons }) => {
             color: "hsl(var(--card-foreground))",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
           }}
+          labelStyle={{
+            color: "hsl(var(--card-foreground))",
+            fontWeight: 600,
+          }}
+          itemStyle={{
+            color: "hsl(var(--card-foreground))",
+          }}
           formatter={(value) => [value, "Lesson Plans"]}
         />
         <Legend
-          wrapperStyle={{ fontSize: "0.875rem", color: "hsl(var(--foreground))" }}
+          wrapperStyle={{
+            fontSize: "0.875rem",
+            color: "hsl(var(--foreground))",
+          }}
+          formatter={(value) => (
+            <span style={{ color: "hsl(var(--foreground))" }}>{value}</span>
+          )}
         />
         <Area
           type="monotone"
