@@ -5,17 +5,18 @@ const API_BASE_URL =
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // Important for cookie-based auth
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor - cookies are sent automatically with withCredentials: true
-// Backend uses cookie-based auth, not Bearer tokens
+// Request interceptor - add Bearer token from localStorage
 apiClient.interceptors.request.use(
   (config) => {
-    // No need to add Authorization header - backend uses cookies
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
