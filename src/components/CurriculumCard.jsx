@@ -5,7 +5,16 @@ import Card from "./common/Card.jsx";
 import Button from "./common/Button.jsx";
 import Modal from "./common/Modal.jsx";
 import { formatDateShort, truncateText } from "../utils/formatters.js";
-import { FileText, Trash2, AlertTriangle, Calendar, ArrowRight } from "lucide-react";
+import { 
+  Trash2, 
+  AlertTriangle, 
+  Calendar, 
+  Target,
+  ChevronRight,
+  BookOpen,
+  Zap,
+  Clock
+} from "lucide-react";
 
 const CurriculumCard = ({ curriculum, onDelete }) => {
   const navigate = useNavigate();
@@ -29,143 +38,111 @@ const CurriculumCard = ({ curriculum, onDelete }) => {
     }
   };
 
-  const handleCancelDelete = () => {
-    setDeleteModalOpen(false);
-  };
-
   const textPreview = curriculum.rawText
-    ? truncateText(curriculum.rawText, 200)
+    ? truncateText(curriculum.rawText, 120)
     : "No text content available";
+
+  const standardCount = curriculum.standardCount || (curriculum.standards?.length) || 0;
 
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        whileHover={{ y: -10 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        className="h-full"
       >
         <Card
-          className="border-l-4 border-l-primary group relative cursor-pointer"
+          className="group relative cursor-pointer overflow-hidden p-8 h-full glass premium-shadow border-none rounded-[2.5rem] bg-gradient-to-br from-white to-slate-50/50"
           clickable
           onClick={() => navigate(`/curriculum/${curriculum._id}`)}
         >
-          <div className="space-y-3">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText className="h-5 w-5 text-primary shrink-0" />
-                  <h3 className="text-lg font-semibold text-card-foreground line-clamp-1">
-                    {curriculum.originalFilename || "Curriculum File"}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>{formatDateShort(curriculum.createdAt)}</span>
-                </div>
+          {/* Top Decorative Gradient */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-600 via-indigo-400 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
+
+          <div className="flex flex-col h-full space-y-6">
+            {/* Header Area */}
+            <div className="flex justify-between items-start gap-4">
+              <div className="h-14 w-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white group-hover:rotate-6 transition-all duration-500 shadow-sm">
+                 <BookOpen className="h-7 w-7" />
               </div>
-              <button
+              <div className="flex flex-col items-end">
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{formatDateShort(curriculum.createdAt)}</span>
+                 <div className="mt-1.5 flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[9px] font-black uppercase border border-emerald-100 italic">
+                    <Zap className="h-3 w-3" />
+                    Verified
+                 </div>
+              </div>
+            </div>
+
+            {/* Title & Preview */}
+            <div className="flex-1 space-y-4">
+               <h3 className="text-xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-2 leading-tight">
+                  {curriculum.originalFilename || "Document Archive"}
+               </h3>
+               <p className="text-sm text-slate-500 font-medium leading-relaxed italic border-l-2 border-indigo-100 pl-4 py-1">
+                 "{textPreview}"
+               </p>
+            </div>
+
+            {/* Metadata Badges */}
+            <div className="flex flex-wrap gap-2 pt-2">
+               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50/50 text-indigo-700 text-[10px] font-black uppercase border border-indigo-100/50">
+                  <Target className="h-3 w-3" />
+                  {standardCount} Standards
+               </div>
+               {curriculum.gradeLevelEstimate && (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase border border-slate-200">
+                     Grade {curriculum.gradeLevelEstimate}
+                  </div>
+               )}
+            </div>
+
+            {/* Card Actions Footer */}
+            <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
+               <button
                 onClick={handleDeleteClick}
-                className="p-1.5 rounded-lg hover:bg-danger/10 text-muted-foreground hover:text-danger transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                className="h-10 w-10 rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-rose-100/50"
                 title="Delete curriculum"
-                aria-label="Delete curriculum"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
-            </div>
-
-            {/* Text Preview */}
-            <div className="p-3 bg-muted rounded-lg border border-border">
-              <p className="text-sm text-card-foreground line-clamp-3">
-                {textPreview}
-              </p>
-              {curriculum.rawText && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  {curriculum.rawText.length.toLocaleString()} characters
-                </p>
-              )}
-            </div>
-
-            {/* Objectives */}
-            {curriculum.extractedObjectives &&
-              curriculum.extractedObjectives.length > 0 && (
-                <div className="p-2 bg-primary/5 rounded-lg border border-primary/20">
-                  <p className="text-xs text-muted-foreground mb-1">
-                    Extracted Objectives ({curriculum.extractedObjectives.length})
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {curriculum.extractedObjectives.slice(0, 2).map((obj, idx) => (
-                      <span
-                        key={idx}
-                        className="text-xs bg-background px-2 py-1 rounded border border-border text-card-foreground"
-                      >
-                        {truncateText(obj, 40)}
-                      </span>
-                    ))}
-                    {curriculum.extractedObjectives.length > 2 && (
-                      <span className="text-xs text-muted-foreground px-2 py-1">
-                        +{curriculum.extractedObjectives.length - 2} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-
-            {/* View Details Indicator */}
-            <div className="flex items-center justify-between pt-2 border-t border-border">
-              <span className="text-xs text-muted-foreground">
-                Click to view details
-              </span>
-              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+              
+              <div className="flex items-center gap-1 text-[10px] font-black uppercase text-indigo-600 group-hover:gap-2 transition-all">
+                Explore Module <ChevronRight className="h-4 w-4" />
+              </div>
             </div>
           </div>
         </Card>
       </motion.div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Modern High-Impact Modal */}
       <Modal
         isOpen={deleteModalOpen}
-        onClose={handleCancelDelete}
-        title="Delete Curriculum"
+        onClose={() => setDeleteModalOpen(false)}
+        title="Confirm Deletion"
         size="sm"
       >
-        <div className="space-y-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-danger/10 rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-danger" />
+        <div className="space-y-8 p-2">
+          <div className="flex items-center gap-5 p-6 bg-rose-50 rounded-[2rem] border border-rose-100">
+            <div className="h-14 w-14 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-rose-500/30 shrink-0">
+               <AlertTriangle className="h-7 w-7" />
             </div>
             <div className="flex-1">
-              <p className="text-foreground font-medium mb-1">
-                Are you sure you want to delete this curriculum?
+               <p className="text-sm text-slate-900 font-black uppercase tracking-widest mb-1">
+                Sensitive Action
               </p>
-              <p className="text-sm text-muted-foreground">
-                This action cannot be undone. All lesson plans associated with
-                this curriculum will still exist, but you won't be able to
-                generate new lessons from it.
+              <p className="text-xs text-rose-700 font-medium leading-relaxed">
+                Deleting this document will purge all extracted intelligence and linked standards.
               </p>
-              <div className="mt-3 p-3 bg-muted rounded-lg border border-border">
-                <p className="text-xs text-muted-foreground mb-1">Curriculum:</p>
-                <p className="text-sm font-medium text-foreground">
-                  {curriculum.originalFilename || "Untitled Curriculum"}
-                </p>
-              </div>
             </div>
           </div>
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Button
-              variant="outline"
-              onClick={handleCancelDelete}
-              disabled={isDeleting}
-            >
-              Cancel
+          
+          <div className="flex gap-3">
+             <Button variant="ghost" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => setDeleteModalOpen(false)}>
+              Keep Data
             </Button>
-            <Button
-              variant="danger"
-              onClick={handleConfirmDelete}
-              loading={isDeleting}
-              icon={<Trash2 className="h-4 w-4" />}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
+            <Button variant="danger" className="flex-1 h-14 rounded-2xl bg-rose-600 hover:bg-rose-700 shadow-xl shadow-rose-500/20 font-black" onClick={handleConfirmDelete} isLoading={isDeleting}>
+              Confirm
             </Button>
           </div>
         </div>
@@ -175,4 +152,3 @@ const CurriculumCard = ({ curriculum, onDelete }) => {
 };
 
 export default CurriculumCard;
-

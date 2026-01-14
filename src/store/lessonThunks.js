@@ -3,12 +3,9 @@ import apiClient from "../utils/apiClient.js";
 
 export const generateLesson = createAsyncThunk(
   "lessons/generate",
-  async ({ curriculumId, studentDataId }, { rejectWithValue }) => {
+  async (formData, { rejectWithValue }) => {
     try {
-      const response = await apiClient.post("/lessons/generate", {
-        curriculumId,
-        studentDataId,
-      });
+      const response = await apiClient.post("/lessons/generate", formData);
       return response.data.lessonPlan;
     } catch (error) {
       return rejectWithValue(

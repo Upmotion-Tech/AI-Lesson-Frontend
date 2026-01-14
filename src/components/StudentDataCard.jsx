@@ -6,9 +6,9 @@ import Button from "./common/Button.jsx";
 import Modal from "./common/Modal.jsx";
 import Badge from "./common/Badge.jsx";
 import { formatDateShort } from "../utils/formatters.js";
-import { Users, Trash2, AlertTriangle, Calendar, ArrowRight } from "lucide-react";
+import { Users, Trash2, AlertTriangle, Calendar, ArrowRight, Activity, TrendingUp } from "lucide-react";
 
-const StudentDataCard = ({ studentData, onDelete }) => {
+const StudentDataCard = ({ data, onDelete }) => {
   const navigate = useNavigate();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -21,17 +21,13 @@ const StudentDataCard = ({ studentData, onDelete }) => {
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
-      await onDelete(studentData._id);
+      await onDelete(data._id);
       setDeleteModalOpen(false);
     } catch (error) {
       // Error handling is done in parent component
     } finally {
       setIsDeleting(false);
     }
-  };
-
-  const handleCancelDelete = () => {
-    setDeleteModalOpen(false);
   };
 
   const getTierDistribution = (students) => {
@@ -46,137 +42,115 @@ const StudentDataCard = ({ studentData, onDelete }) => {
     );
   };
 
-  const tierDist = getTierDistribution(studentData?.students);
-  const totalStudents = studentData?.students?.length || 0;
+  const tierDist = getTierDistribution(data?.students);
+  const totalStudents = data?.students?.length || 0;
 
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        whileHover={{ y: -10 }}
+        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        className="h-full"
       >
         <Card
-          className="border-l-4 border-l-success group relative cursor-pointer"
+          className="group relative cursor-pointer overflow-hidden p-8 h-full glass premium-shadow border-none rounded-[2.5rem] bg-gradient-to-br from-white to-slate-50/50"
           clickable
-          onClick={() => navigate(`/students/${studentData._id}`)}
+          onClick={() => navigate(`/students/${data._id}`)}
         >
-          <div className="space-y-3">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="h-5 w-5 text-success shrink-0" />
-                  <h3 className="text-lg font-semibold text-card-foreground line-clamp-1">
-                    {studentData.originalFilename || "Student Data File"}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>{formatDateShort(studentData.createdAt)}</span>
-                </div>
+          {/* Top Decorative Gradient */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-emerald-400 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
+
+          <div className="flex flex-col h-full space-y-6">
+            {/* Header Area */}
+            <div className="flex justify-between items-start gap-4">
+              <div className="h-14 w-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white group-hover:scale-110 transition-all duration-500 shadow-sm">
+                 <Users className="h-7 w-7" />
               </div>
-              <button
+              <div className="flex flex-col items-end">
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{formatDateShort(data.createdAt)}</span>
+                 <div className="mt-1.5 flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-[9px] font-black uppercase border border-indigo-100 italic">
+                    <Activity className="h-3 w-3" />
+                    Sync'd
+                 </div>
+              </div>
+            </div>
+
+            {/* Title & Preview */}
+            <div className="flex-1 space-y-4">
+               <h3 className="text-xl font-black text-slate-900 group-hover:text-emerald-600 transition-colors line-clamp-2 leading-tight">
+                  {data.originalFilename || "Cohort Data Roster"}
+               </h3>
+               
+               <div className="grid grid-cols-3 gap-2">
+                 <div className="bg-emerald-500/5 p-3 rounded-2xl border border-emerald-100/50 text-center">
+                    <p className="text-[10px] font-black text-emerald-700 uppercase tracking-tighter">Tier 1</p>
+                    <p className="text-lg font-black text-emerald-700">{tierDist.tier1}</p>
+                 </div>
+                 <div className="bg-amber-500/5 p-3 rounded-2xl border border-amber-100/50 text-center">
+                    <p className="text-[10px] font-black text-amber-700 uppercase tracking-tighter">Tier 2</p>
+                    <p className="text-lg font-black text-amber-700">{tierDist.tier2}</p>
+                 </div>
+                 <div className="bg-rose-500/5 p-3 rounded-2xl border border-rose-100/50 text-center">
+                    <p className="text-[10px] font-black text-rose-700 uppercase tracking-tighter">Tier 3</p>
+                    <p className="text-lg font-black text-rose-700">{tierDist.tier3}</p>
+                 </div>
+               </div>
+            </div>
+
+            {/* Total Students Badge */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl w-fit">
+               <TrendingUp className="h-4 w-4 text-emerald-600" />
+               <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                 {totalStudents} Population Count
+               </span>
+            </div>
+
+            {/* Card Actions Footer */}
+            <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+               <button
                 onClick={handleDeleteClick}
-                className="p-1.5 rounded-lg hover:bg-danger/10 text-muted-foreground hover:text-danger transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                className="h-10 w-10 rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-rose-100/50"
                 title="Delete student data"
-                aria-label="Delete student data"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
-            </div>
-
-            {/* Total Students */}
-            <div className="p-3 bg-success/10 rounded-lg border border-success/20">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-card-foreground">
-                  Total Students
-                </span>
-                <span className="text-2xl font-bold text-success">
-                  {totalStudents}
-                </span>
+              
+              <div className="flex items-center gap-1 text-[10px] font-black uppercase text-emerald-600 group-hover:gap-2 transition-all">
+                Analyze Population <ArrowRight className="h-4 w-4" />
               </div>
-            </div>
-
-            {/* Tier Distribution */}
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">
-                Tier Distribution
-              </p>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between p-2 bg-success/10 rounded-lg border border-success/20">
-                  <span className="text-xs text-card-foreground">Tier 1 (≥70)</span>
-                  <Badge variant="success">{tierDist.tier1}</Badge>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-warning/10 rounded-lg border border-warning/20">
-                  <span className="text-xs text-card-foreground">Tier 2 (55-69)</span>
-                  <Badge variant="warning">{tierDist.tier2}</Badge>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-danger/10 rounded-lg border border-danger/20">
-                  <span className="text-xs text-card-foreground">Tier 3 (&lt;55)</span>
-                  <Badge variant="danger">{tierDist.tier3}</Badge>
-                </div>
-              </div>
-            </div>
-
-            {/* View Details Indicator */}
-            <div className="flex items-center justify-between pt-2 border-t border-border">
-              <span className="text-xs text-muted-foreground">
-                Click to view details
-              </span>
-              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-success group-hover:translate-x-1 transition-all" />
             </div>
           </div>
         </Card>
       </motion.div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Modern High-Impact Modal */}
       <Modal
         isOpen={deleteModalOpen}
-        onClose={handleCancelDelete}
-        title="Delete Student Data"
+        onClose={() => setDeleteModalOpen(false)}
+        title="Confirm Data Removal"
         size="sm"
       >
-        <div className="space-y-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-danger/10 rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-danger" />
+        <div className="space-y-8 p-2">
+          <div className="flex items-center gap-5 p-6 bg-rose-50 rounded-[2rem] border border-rose-100">
+            <div className="h-14 w-14 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-rose-500/30 shrink-0">
+               <AlertTriangle className="h-7 w-7" />
             </div>
             <div className="flex-1">
-              <p className="text-foreground font-medium mb-1">
-                Are you sure you want to delete this student data?
+               <p className="text-sm text-slate-900 font-black uppercase tracking-widest mb-1">
+                Security Alert
               </p>
-              <p className="text-sm text-muted-foreground">
-                This action cannot be undone. All lesson plans associated with
-                this student data will still exist, but you won't be able to
-                generate new lessons from it.
+              <p className="text-xs text-rose-700 font-medium leading-relaxed">
+                Purging this cohort will remove all linkable personalization data for future lessons.
               </p>
-              <div className="mt-3 p-3 bg-muted rounded-lg border border-border">
-                <p className="text-xs text-muted-foreground mb-1">Student Data:</p>
-                <p className="text-sm font-medium text-foreground">
-                  {studentData.originalFilename || "Untitled Student Data"}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {totalStudents} students
-                </p>
-              </div>
             </div>
           </div>
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Button
-              variant="outline"
-              onClick={handleCancelDelete}
-              disabled={isDeleting}
-            >
-              Cancel
+          
+          <div className="flex gap-3">
+             <Button variant="ghost" className="flex-1 h-14 rounded-2xl font-bold" onClick={() => setDeleteModalOpen(false)}>
+              Keep Data
             </Button>
-            <Button
-              variant="danger"
-              onClick={handleConfirmDelete}
-              loading={isDeleting}
-              icon={<Trash2 className="h-4 w-4" />}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
+            <Button variant="danger" className="flex-1 h-14 rounded-2xl bg-rose-600 hover:bg-rose-700 shadow-xl shadow-rose-500/20 font-black" onClick={handleConfirmDelete} isLoading={isDeleting}>
+              Delete
             </Button>
           </div>
         </div>
@@ -186,4 +160,3 @@ const StudentDataCard = ({ studentData, onDelete }) => {
 };
 
 export default StudentDataCard;
-
