@@ -1,273 +1,427 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
 import { fetchAllCurricula } from "../store/curriculumThunks.js";
 import { fetchAllStudentData } from "../store/studentDataThunks.js";
-import LessonGeneratePlaceholder from "../components/LessonGeneratePlaceholder.jsx";
+import { generateLesson } from "../store/lessonThunks.js";
 import Card from "../components/common/Card.jsx";
+import Button from "../components/common/Button.jsx";
 import Select from "../components/common/Select.jsx";
-import { CardSkeleton } from "../components/common/Skeleton.jsx";
-import Badge from "../components/common/Badge.jsx";
+import Loader from "../components/common/Loader.jsx";
 import PageTransition from "../components/common/PageTransition.jsx";
-import { formatDateShort, truncateText } from "../utils/formatters.js";
-import { Sparkles, BookOpen, Users, TrendingUp } from "lucide-react";
+import { 
+  Sparkles, 
+  BookOpen, 
+  Users, 
+  Zap, 
+  ArrowRight, 
+  ChevronRight, 
+  AlertCircle,
+  FileText,
+  Target,
+  BrainCircuit,
+  Settings2,
+  Rocket,
+  Activity
+} from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const GenerateLessonPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
-  const { list: curricula, status: curriculumStatus } = useAppSelector(
-    (state) => state.curriculum
-  );
-  const { list: studentDataList, status: studentDataStatus } = useAppSelector(
-    (state) => state.studentData
-  );
+  
+  const { list: curricula } = useAppSelector((state) => state.curriculum);
+  const { list: studentDataList } = useAppSelector((state) => state.studentData);
+  const { status: lessonStatus } = useAppSelector((state) => state.lessons);
 
-  const [selectedCurriculumId, setSelectedCurriculumId] = useState("");
-  const [selectedStudentDataId, setSelectedStudentDataId] = useState("");
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    curriculumId: location.state?.curriculumId || "",
+    studentDataId: "",
+    model: "gpt-4o-mini",
+    tonality: "Engaging",
+    focusArea: ""
+  });
 
   useEffect(() => {
     dispatch(fetchAllCurricula());
     dispatch(fetchAllStudentData());
   }, [dispatch]);
 
-  // Set default selections when data loads
-  useEffect(() => {
-    if (curricula.length > 0 && !selectedCurriculumId) {
-      setSelectedCurriculumId(curricula[0]._id);
+  const handleGenerate = async () => {
+    if (!formData.curriculumId || !formData.studentDataId) {
+      toast.error("Please select both curriculum and student data");
+      return;
     }
-  }, [curricula, selectedCurriculumId]);
 
-  useEffect(() => {
-    if (studentDataList.length > 0 && !selectedStudentDataId) {
-      setSelectedStudentDataId(studentDataList[0]._id);
+    try {
+      const result = await dispatch(generateLesson(formData)).unwrap();
+      toast.success("Lesson plan generated successfully!");
+      if (result && result._id) {
+        navigate(`/lessons/${result._id}`);
+      } else {
+        navigate("/lessons");
+      }
+    } catch (error) {
+      toast.error(error || "Failed to generate lesson plan");
     }
-  }, [studentDataList, selectedStudentDataId]);
-
-  const isLoading =
-    curriculumStatus === "loading" || studentDataStatus === "loading";
-
-  const selectedCurriculum = curricula.find((c) => c._id === selectedCurriculumId);
-  const selectedStudentData = studentDataList.find(
-    (s) => s._id === selectedStudentDataId
-  );
-
-  const getTierDistribution = (students) => {
-    if (!students || students.length === 0)
-      return { tier1: 0, tier2: 0, tier3: 0 };
-    return students.reduce(
-      (acc, student) => {
-        acc[`tier${student.tier}`] = (acc[`tier${student.tier}`] || 0) + 1;
-        return acc;
-      },
-      { tier1: 0, tier2: 0, tier3: 0 }
-    );
   };
 
-  const tierDist = getTierDistribution(selectedStudentData?.students);
+  const currentCurriculum = curricula.find(c => c._id === formData.curriculumId);
+  const currentStudentData = studentDataList.find(s => s._id === formData.studentDataId);
 
-  const curriculumOptions = curricula.map((c) => ({
-    value: c._id,
-    label: c.originalFilename || `Curriculum - ${formatDateShort(c.createdAt)}`,
-  }));
-
-  const studentDataOptions = studentDataList.map((s) => ({
-    value: s._id,
-    label: s.originalFilename || `Student Data - ${formatDateShort(s.createdAt)} (${s.students?.length || 0} students)`,
-  }));
-
-  if (isLoading) {
-    return (
-      <PageTransition>
-        <div className="space-y-4 sm:space-y-6">
-          <div className="pb-2">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-              </div>
-              <span>Generate Lesson Plan</span>
-            </h1>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <CardSkeleton count={2} />
-          </div>
-        </div>
-      </PageTransition>
-    );
-  }
+  const steps = [
+    { id: 1, title: "Foundation", icon: BookOpen, desc: "Select Curriculum" },
+    { id: 2, title: "Audience", icon: Users, desc: "Select Student Data" },
+    { id: 3, title: "Intelligence", icon: BrainCircuit, desc: "Configure AI" }
+  ];
 
   return (
     <PageTransition>
-      <div className="space-y-4 sm:space-y-6">
-      <div className="pb-2">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Sparkles className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+      <div className="max-w-5xl mx-auto space-y-12 pb-20">
+        {/* Generative Header */}
+        <div className="text-center space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-amber-700 text-sm font-black uppercase tracking-widest shadow-sm"
+          >
+            <Sparkles className="h-4 w-4" />
+            Generate Lesson
+          </motion.div>
+          <div className="space-y-2">
+            <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight">
+              Create <span className="gradient-text">Personalized</span> Content
+            </h1>
+            <p className="text-xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed">
+              Transform your core curriculum into high-impact, tiered lessons tailored to your specific student population.
+            </p>
           </div>
-          <span>Generate Lesson Plan</span>
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          Generate personalized lesson plans based on your curriculum and
-          student performance data.
-        </p>
-      </div>
-
-      {/* Selection Section */}
-      <Card title="Select Resources" className="border-l-4 border-l-primary">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select
-            label="Select Curriculum"
-            value={selectedCurriculumId}
-            onChange={(e) => setSelectedCurriculumId(e.target.value)}
-            options={curriculumOptions}
-            required
-            disabled={isLoading || curricula.length === 0}
-          />
-          <Select
-            label="Select Student Data"
-            value={selectedStudentDataId}
-            onChange={(e) => setSelectedStudentDataId(e.target.value)}
-            options={studentDataOptions}
-            required
-            disabled={isLoading || studentDataList.length === 0}
-          />
         </div>
-        {curricula.length === 0 && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            No curricula available. Please upload a curriculum first.
-          </p>
-        )}
-        {studentDataList.length === 0 && (
-          <p className="mt-2 text-sm text-muted-foreground">
-            No student data available. Please upload student data first.
-          </p>
-        )}
-      </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Curriculum Summary */}
-        <Card title="Curriculum Preview" className="border-l-4 border-l-primary">
-          {selectedCurriculum ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 p-2 bg-primary/10 rounded-lg border border-primary/20">
-                <BookOpen className="h-5 w-5 text-primary" />
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">Uploaded on</p>
-                  <p className="text-sm font-medium text-card-foreground">
-                    {formatDateShort(selectedCurriculum.createdAt)}
-                  </p>
-                </div>
+        {/* Multi-Step Indicator */}
+        <div className="flex items-center justify-between max-w-3xl mx-auto px-4 relative">
+          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-100 -translate-y-1/2 z-0" />
+          {steps.map((s, i) => (
+            <div key={s.id} className="relative z-10 flex flex-col items-center gap-3">
+              <div 
+                className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-500 border-4 ${
+                  step >= s.id 
+                    ? "bg-indigo-600 border-indigo-100 text-white shadow-xl shadow-indigo-500/20" 
+                    : "bg-white border-slate-50 text-slate-300"
+                }`}
+              >
+                <s.icon className="h-6 w-6" />
               </div>
-              {selectedCurriculum.originalFilename && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Filename</p>
-                  <p className="text-sm font-medium text-card-foreground">
-                    {selectedCurriculum.originalFilename}
-                  </p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-medium text-card-foreground mb-2">Preview</p>
-                <div className="bg-muted p-3 rounded-lg border border-border max-h-48 overflow-y-auto">
-                  <p className="text-sm text-card-foreground">
-                    {truncateText(selectedCurriculum.rawText, 300)}
-                  </p>
-                </div>
+              <div className="text-center">
+                <p className={`text-[10px] font-black uppercase tracking-widest ${step >= s.id ? "text-indigo-600" : "text-slate-400"}`}>
+                  Step 0{s.id}
+                </p>
+                <p className={`text-sm font-bold truncate max-w-[100px] ${step >= s.id ? "text-slate-900" : "text-slate-400"}`}>
+                  {s.title}
+                </p>
               </div>
-              {selectedCurriculum.extractedObjectives &&
-                selectedCurriculum.extractedObjectives.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-card-foreground mb-2">
-                      Extracted Objectives ({selectedCurriculum.extractedObjectives.length})
-                    </p>
-                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-2">
-                      <ul className="space-y-1">
-                        {selectedCurriculum.extractedObjectives.map((obj, idx) => (
-                          <li
-                            key={idx}
-                            className="text-xs text-card-foreground flex items-start gap-2"
+            </div>
+          ))}
+        </div>
+
+        {/* Generation Interface */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          <div className="lg:col-span-12">
+            <AnimatePresence mode="wait">
+              {step === 1 && (
+                <motion.div
+                  key="step1"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-8"
+                >
+                  <Card className="p-10 rounded-[3rem] border-none shadow-2xl shadow-indigo-500/5 bg-gradient-to-br from-white to-slate-50/50">
+                    <div className="flex flex-col md:flex-row gap-12">
+                      <div className="flex-1 space-y-8">
+                        <div>
+                          <h3 className="text-2xl font-black text-slate-900 mb-2">Curriculum Selection</h3>
+                          <p className="text-muted-foreground font-medium">Select the base content for your lesson plan.</p>
+                        </div>
+                        
+                        <div className="space-y-6">
+                           {curricula.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {curricula.map((c) => (
+                                <button
+                                  key={c._id}
+                                  onClick={() => setFormData({ ...formData, curriculumId: c._id })}
+                                  className={`p-6 rounded-[2rem] text-left transition-all duration-300 border-2 ${
+                                    formData.curriculumId === c._id
+                                      ? "bg-indigo-50 border-indigo-600 shadow-lg shadow-indigo-500/10"
+                                      : "bg-white border-slate-100 hover:border-indigo-200"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-4 mb-3">
+                                    <div className={`p-3 rounded-xl ${formData.curriculumId === c._id ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400"}`}>
+                                      <FileText className="h-5 w-5" />
+                                    </div>
+                                    <h4 className="font-bold text-slate-900 line-clamp-1">{c.originalFilename}</h4>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground">
+                                    <Target className="h-3 w-3" />
+                                    {c.gradeLevelEstimate ? `Grade ${c.gradeLevelEstimate}` : "Mixed Grades"}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="bg-slate-50 rounded-[2rem] p-12 text-center border-2 border-dashed border-slate-200">
+                               <p className="text-muted-foreground font-bold italic mb-6">No curriculum found in your library.</p>
+                               <Button onClick={() => navigate("/upload-curriculum")} variant="primary" className="rounded-2xl">
+                                  Upload Now
+                               </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="w-full md:w-80 space-y-6">
+                        <div className="p-8 rounded-[2rem] bg-indigo-600 text-white shadow-xl shadow-indigo-500/30 relative overflow-hidden">
+                          <Zap className="absolute bottom-[-20%] right-[-10%] h-40 w-40 opacity-10" />
+                          <h4 className="text-lg font-black mb-4">Pro Tip</h4>
+                          <p className="text-white/70 text-sm leading-relaxed font-medium">
+                            Choose a curriculum that already has extracted standards for the best results.
+                          </p>
+                        </div>
+                        {formData.curriculumId && (
+                           <Button 
+                            className="w-full h-16 rounded-[2rem] bg-slate-900 hover:bg-slate-800 text-white font-black shadow-xl"
+                            onClick={() => setStep(2)}
+                            icon={<ArrowRight className="h-5 w-5" />}
                           >
-                            <span className="text-primary font-bold shrink-0">•</span>
-                            <span className="flex-1">{truncateText(obj, 100)}</span>
-                          </li>
-                        ))}
-                      </ul>
+                            Next Step
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-            </div>
-          ) : (
-            <div className="p-4 bg-muted rounded-lg text-center">
-              <p className="text-muted-foreground">
-                {curricula.length === 0
-                  ? "No curriculum uploaded yet"
-                  : "Please select a curriculum"}
-              </p>
-            </div>
-          )}
-        </Card>
-
-        {/* Student Data Summary */}
-        <Card title="Student Data Preview" className="border-l-4 border-l-success">
-          {selectedStudentData ? (
-            <div className="space-y-4">
-              <div className="p-3 bg-success/10 rounded-lg border border-success/20">
-                <p className="text-xs text-muted-foreground mb-1">Total Students</p>
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-success" />
-                  <p className="text-2xl font-bold text-success">
-                    {selectedStudentData.students?.length || 0}
-                  </p>
-                </div>
-              </div>
-              {selectedStudentData.originalFilename && (
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Filename</p>
-                  <p className="text-sm font-medium text-card-foreground">
-                    {selectedStudentData.originalFilename}
-                  </p>
-                </div>
+                  </Card>
+                </motion.div>
               )}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm font-medium text-card-foreground">
-                    Tier Distribution
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-2 bg-success/10 rounded-lg border border-success/20">
-                    <span className="text-sm text-card-foreground font-medium">Tier 1 (≥70)</span>
-                    <Badge variant="success">{tierDist.tier1}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-2 bg-warning/10 rounded-lg border border-warning/20">
-                    <span className="text-sm text-card-foreground font-medium">Tier 2 (55-69)</span>
-                    <Badge variant="warning">{tierDist.tier2}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-2 bg-danger/10 rounded-lg border border-danger/20">
-                    <span className="text-sm text-card-foreground font-medium">Tier 3 (&lt;55)</span>
-                    <Badge variant="danger">{tierDist.tier3}</Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 bg-muted rounded-lg text-center">
-              <p className="text-muted-foreground">
-                {studentDataList.length === 0
-                  ? "No student data uploaded yet"
-                  : "Please select student data"}
-              </p>
-            </div>
-          )}
-        </Card>
-      </div>
 
-      <Card title="Generate Lesson Plan" className="border-l-4 border-l-primary">
-        <LessonGeneratePlaceholder
-          selectedCurriculumId={selectedCurriculumId}
-          selectedStudentDataId={selectedStudentDataId}
-        />
-      </Card>
+              {step === 2 && (
+                 <motion.div
+                  key="step2"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-8"
+                >
+                  <Card className="p-10 rounded-[3rem] border-none shadow-2xl shadow-indigo-500/5 bg-gradient-to-br from-white to-slate-50/50">
+                    <div className="flex flex-col md:flex-row gap-12">
+                      <div className="flex-1 space-y-8">
+                        <div>
+                          <h3 className="text-2xl font-black text-slate-900 mb-2">Student Context</h3>
+                          <p className="text-muted-foreground font-medium">Personalize content for your specific classroom tiers.</p>
+                        </div>
+                        
+                        <div className="space-y-6">
+                           {studentDataList.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {studentDataList.map((s) => (
+                                <button
+                                  key={s._id}
+                                  onClick={() => setFormData({ ...formData, studentDataId: s._id })}
+                                  className={`p-6 rounded-[2rem] text-left transition-all duration-300 border-2 ${
+                                    formData.studentDataId === s._id
+                                      ? "bg-emerald-50 border-emerald-600 shadow-lg shadow-emerald-500/10"
+                                      : "bg-white border-slate-100 hover:border-emerald-200"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-4 mb-3">
+                                    <div className={`p-3 rounded-xl ${formData.studentDataId === s._id ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-400"}`}>
+                                      <Users className="h-5 w-5" />
+                                    </div>
+                                    <h4 className="font-bold text-slate-900 line-clamp-1">{s.originalFilename}</h4>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-[10px] font-black uppercase text-muted-foreground">
+                                    <Activity className="h-3 w-3" />
+                                    {s.students?.length || 0} Students Sync'd
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="bg-slate-50 rounded-[2rem] p-12 text-center border-2 border-dashed border-slate-200">
+                               <p className="text-muted-foreground font-bold italic mb-6">No student data found.</p>
+                               <Button onClick={() => navigate("/upload-students")} variant="primary" className="rounded-2xl">
+                                  Sync Students
+                               </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="w-full md:w-80 space-y-6">
+                         <div className="p-8 rounded-[2rem] bg-emerald-600 text-white shadow-xl shadow-emerald-500/30">
+                          <h4 className="text-lg font-black mb-4">Adaptive Tech</h4>
+                          <p className="text-white/70 text-sm leading-relaxed font-medium">
+                            AI will use this data to create specific tiered instructions for each group.
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                          <Button 
+                            className="w-full h-16 rounded-[2rem] bg-slate-900 hover:bg-slate-800 text-white font-black shadow-xl"
+                            onClick={() => setStep(3)}
+                            disabled={!formData.studentDataId}
+                            icon={<ArrowRight className="h-5 w-5" />}
+                          >
+                            Step 3
+                          </Button>
+                          <Button 
+                            variant="ghost"
+                            className="w-full h-14 rounded-2xl font-bold"
+                            onClick={() => setStep(1)}
+                          >
+                            Back to Curriculum
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              )}
+
+              {step === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-8"
+                >
+                  <Card className="p-10 rounded-[3rem] border-none shadow-2xl shadow-indigo-500/5 bg-gradient-to-br from-white to-slate-50/50">
+                    <div className="flex flex-col md:flex-row gap-12">
+                      <div className="flex-1 space-y-10">
+                        <div>
+                          <h3 className="text-2xl font-black text-slate-900 mb-2">Refine Generation</h3>
+                          <p className="text-muted-foreground font-medium">Fine-tune how the AI constructs your lesson.</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-4">
+                            <label className="text-xs font-black uppercase tracking-widest text-indigo-600 block flex items-center gap-2">
+                              <Settings2 className="h-3 w-3" />
+                              Intelligence Model
+                            </label>
+                            <Select
+                              value={formData.model}
+                              onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                              options={[
+                                { value: "gpt-4o-mini", label: "GPT-4o Mini (Fast & Efficient)" },
+                                { value: "gpt-4o", label: "GPT-4o (High Performance)" }
+                              ]}
+                              className="rounded-2xl border-slate-200 h-14"
+                            />
+                          </div>
+
+                          <div className="space-y-4">
+                            <label className="text-xs font-black uppercase tracking-widest text-indigo-600 block flex items-center gap-2">
+                              <Zap className="h-3 w-3" />
+                              Creative Tonality
+                            </label>
+                            <Select
+                              value={formData.tonality}
+                              onChange={(e) => setFormData({ ...formData, tonality: e.target.value })}
+                              options={[
+                                { value: "Engaging", label: "Engaging & Active" },
+                                { value: "Formal", label: "Formal & Academic" },
+                                { value: "Creative", label: "Creative & Story-driven" },
+                                { value: "Direct", label: "Direct & Structured" }
+                              ]}
+                              className="rounded-2xl border-slate-200 h-14"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                           <label className="text-xs font-black uppercase tracking-widest text-indigo-600 block">
+                              Custom Focus (Optional)
+                            </label>
+                            <textarea
+                              placeholder="e.g. Focus on hands-on activities, emphasize vocabulary for ESL students..."
+                              className="w-full rounded-3xl border-slate-200 p-6 min-h-[120px] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-slate-900"
+                              value={formData.focusArea}
+                              onChange={(e) => setFormData({ ...formData, focusArea: e.target.value })}
+                            />
+                        </div>
+                      </div>
+
+                      <div className="w-full md:w-80 space-y-6">
+                        <div className="p-8 rounded-[2rem] bg-indigo-700 text-white shadow-2xl shadow-indigo-500/40 border border-white/10 relative overflow-hidden">
+                          <Rocket className="absolute bottom-[-10%] right-[-10%] h-32 w-32 opacity-10 -rotate-12" />
+                          <h4 className="text-lg font-black mb-4">Launch Sync</h4>
+                          <div className="space-y-4 text-white/70 text-xs font-medium leading-relaxed">
+                            <div className="flex items-center gap-2">
+                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                              Curriculum linked successfully
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                              Students context mapped
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                              AI engine primed
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-3">
+                          <Button 
+                            className="w-full h-20 rounded-[2.5rem] bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black shadow-2xl shadow-indigo-500/50 relative group overflow-hidden"
+                            onClick={handleGenerate}
+                            disabled={lessonStatus === "loading"}
+                          >
+                            {lessonStatus === "loading" ? (
+                              <div className="flex items-center gap-3">
+                                <Loader size="sm" color="white" />
+                                <span className="animate-pulse">Thinking...</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-3 justify-center">
+                                <span>Generate Lesson</span>
+                                <Sparkles className="h-5 w-5 group-hover:scale-125 transition-transform" />
+                              </div>
+                            )}
+                          </Button>
+                          <Button 
+                            variant="ghost"
+                            className="w-full h-14 rounded-2xl font-bold"
+                            onClick={() => setStep(2)}
+                            disabled={lessonStatus === "loading"}
+                          >
+                            Back
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Global Alert */}
+        {!currentCurriculum && !currentStudentData && (
+          <div className="bg-amber-50 border border-amber-100 p-6 rounded-[2rem] flex items-start gap-4 mx-auto max-w-2xl shadow-lg shadow-amber-500/5 transition-all">
+             <AlertCircle className="h-6 w-6 text-amber-500 shrink-0 mt-0.5" />
+             <div className="space-y-1">
+               <p className="text-sm font-black text-amber-900 uppercase tracking-widest">Workflow Required</p>
+               <p className="text-sm text-amber-800/70 font-medium">Please select both a curriculum module and student population data to begin the generative process.</p>
+             </div>
+          </div>
+        )}
       </div>
     </PageTransition>
   );

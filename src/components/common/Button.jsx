@@ -12,6 +12,7 @@ const Button = ({
   className = "",
   icon,
   iconPosition = "left",
+  isLoading: isLoadingProp, // Destructure to avoid spreading to DOM
   ...props
 }) => {
   const baseClasses =
@@ -39,7 +40,7 @@ const Button = ({
       "bg-success text-white hover:opacity-90 focus:ring-success shadow-sm hover:shadow-md hover:shadow-success/20",
   };
 
-  const isLoading = loading || disabled;
+  const isLoading = loading || disabled || isLoadingProp;
   const showIcon = icon && !isLoading;
 
   return (

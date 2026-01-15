@@ -1,256 +1,151 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { ShieldCheck, Sparkles } from "lucide-react";
-import Card from "../components/common/Card.jsx";
-import Button from "../components/common/Button.jsx";
-import { toast } from "react-hot-toast";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
-import { resendLoginOtp, verifyLoginOtp } from "../store/authThunks.js";
-
-const OTP_LENGTH = 6;
-const RESEND_INTERVAL = 180;
+import { verifyLoginOtp, resendLoginOtp } from "../store/authThunks.js";
+import Button from "../components/common/Button.jsx";
+import { ShieldCheck, Mail, ArrowRight, RefreshCcw, CheckCircle2 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 const OtpVerificationPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const dispatch = useAppDispatch();
-  const {
-    pendingUser,
-    otpRequired,
-    token,
-    otpToken,
-    pendingRememberMe,
-    otpVerificationStatus,
-    otpResendStatus,
-    otpLastSentAt,
-  } = useAppSelector((state) => state.auth);
-  const emailFromState = location.state?.email;
-  const email = emailFromState || pendingUser?.email;
-  const [otpValues, setOtpValues] = useState(Array(OTP_LENGTH).fill(""));
-  const [currentTime, setCurrentTime] = useState(() => Date.now());
-  const [error, setError] = useState("");
-  const inputRefs = useRef([]);
-  const lastSubmittedCodeRef = useRef("");
-  const isSubmitting = otpVerificationStatus === "loading";
-  const isResending = otpResendStatus === "loading";
+  const { otpToken, pendingUser, otpVerificationStatus, otpResendStatus } = useAppSelector((state) => state.auth);
+  
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [timer, setTimer] = useState(60);
 
   useEffect(() => {
-    if (!otpRequired) {
-      if (token) {
-        navigate("/", { replace: true });
-      } else {
-        navigate("/login", { replace: true });
-      }
+    if (!otpToken) {
+      navigate("/login");
+    }
+  }, [otpToken, navigate]);
+
+  useEffect(() => {
+    let interval;
+    if (timer > 0) {
+      interval = setInterval(() => setTimer((t) => t - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const handleChange = (element, index) => {
+    if (isNaN(element.value)) return false;
+    setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
+
+    // Focus next input
+    if (element.nextSibling && element.value) {
+      element.nextSibling.focus();
+    }
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    const otpString = otp.join("");
+    if (otpString.length < 6) {
+      toast.error("Please enter the full 6-digit code");
       return;
     }
 
-    if (otpRequired && !otpToken) {
-      navigate("/login", { replace: true });
+    try {
+      await dispatch(verifyLoginOtp({ otp: otpString, otpToken })).unwrap();
+      toast.success("Security verified!");
+      navigate("/");
+    } catch (error) {
+      toast.error(error || "Invalid verification code");
     }
-  }, [otpRequired, otpToken, token, navigate]);
-
-  useEffect(() => {
-    inputRefs.current[0]?.focus();
-  }, []);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, []);
-
-  const secondsRemaining = useMemo(() => {
-    if (!otpLastSentAt) {
-      return RESEND_INTERVAL;
-    }
-    const elapsed = Math.floor((currentTime - otpLastSentAt) / 1000);
-    return Math.max(RESEND_INTERVAL - elapsed, 0);
-  }, [otpLastSentAt, currentTime]);
-
-  const submitOtp = useCallback(
-    async (code) => {
-      if (code.length !== OTP_LENGTH) {
-        setError("Please enter the 6-digit code we sent you.");
-        return;
-      }
-
-      if (!otpToken) {
-        toast.error("Your session expired. Please login again.");
-        navigate("/login", { replace: true });
-        return;
-      }
-
-      lastSubmittedCodeRef.current = code;
-
-      const result = await dispatch(
-        verifyLoginOtp({
-          otpCode: code,
-          otpToken,
-          rememberMe: pendingRememberMe,
-        })
-      );
-
-      if (verifyLoginOtp.fulfilled.match(result)) {
-        toast.success("OTP verified successfully");
-        navigate("/", { replace: true });
-      } else {
-        const message =
-          result.payload || result.error?.message || "OTP verification failed";
-        setError(message);
-        toast.error(message);
-      }
-    },
-    [dispatch, navigate, otpToken, pendingRememberMe]
-  );
-
-  const attemptAutoSubmit = useCallback(
-    (values) => {
-      const allDigitsFilled = values.every((digit) => digit !== "");
-      if (
-        allDigitsFilled &&
-        !isSubmitting &&
-        otpToken &&
-        lastSubmittedCodeRef.current !== values.join("")
-      ) {
-        submitOtp(values.join(""));
-      }
-    },
-    [isSubmitting, otpToken, submitOtp]
-  );
-
-  const handleChange = (index, value) => {
-    if (!/^\d?$/.test(value)) return;
-
-    const updatedValues = [...otpValues];
-    updatedValues[index] = value;
-    setOtpValues(updatedValues);
-    setError("");
-
-    if (value && index < OTP_LENGTH - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-    attemptAutoSubmit(updatedValues);
-  };
-
-  const handleKeyDown = (index, event) => {
-    if (event.key === "Backspace" && !otpValues[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (event) => {
-    event.preventDefault();
-    const pasted = event.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, OTP_LENGTH);
-    if (!pasted) return;
-
-    const values = Array(OTP_LENGTH)
-      .fill("")
-      .map((_, idx) => pasted[idx] || "");
-
-    setOtpValues(values);
-    setError("");
-    const nextIndex = Math.min(pasted.length, OTP_LENGTH - 1);
-    inputRefs.current[nextIndex]?.focus();
-    attemptAutoSubmit(values);
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    submitOtp(otpValues.join(""));
   };
 
   const handleResend = async () => {
-    if (secondsRemaining > 0 || !otpToken || isResending) return;
-
-    const result = await dispatch(resendLoginOtp({ otpToken }));
-
-    if (resendLoginOtp.fulfilled.match(result)) {
-      setOtpValues(Array(OTP_LENGTH).fill(""));
-      setCurrentTime(Date.now());
-      toast.success("OTP resent to your email");
-    } else {
-      const message =
-        result.payload || result.error?.message || "Failed to resend code";
-      toast.error(message);
+    if (timer > 0) return;
+    try {
+      await dispatch(resendLoginOtp({ email: pendingUser.email })).unwrap();
+      setTimer(60);
+      toast.success("New code sent to your email");
+    } catch (error) {
+      toast.error(error || "Failed to resend code");
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center gap-2 p-3 bg-primary/10 rounded-full mb-4">
-            <ShieldCheck className="h-6 w-6 text-primary" />
-            <Sparkles className="h-5 w-5 text-secondary" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-            Verify your account
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {email
-              ? `Enter the 6-digit verification code sent to ${email}`
-              : "Enter the 6-digit verification code sent to your email"}
-          </p>
-        </div>
-        <Card className="shadow-lg hover:shadow-xl transition-shadow">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div
-              className="grid grid-cols-6 gap-2 sm:gap-3"
-              onPaste={handlePaste}
-            >
-              {otpValues.map((value, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={value}
-                  onChange={(e) => handleChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  className="h-12 sm:h-14 rounded-lg border border-input bg-background text-center text-lg font-semibold focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                  aria-label={`Digit ${index + 1}`}
-                  autoComplete="one-time-code"
-                />
-              ))}
-            </div>
-            {error && (
-              <p className="text-sm text-destructive text-center">{error}</p>
-            )}
-            {/* <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Verifying..." : "Verify & Continue"}
-            </Button> */}
-            <div className="text-center text-sm text-muted-foreground space-y-2">
-              <p>
-                Didn&apos;t receive a code?{" "}
-                <button
-                  type="button"
-                  className={`font-medium ${
-                    secondsRemaining === 0 && !isResending
-                      ? "text-primary hover:opacity-80"
-                      : "text-muted-foreground cursor-not-allowed"
-                  }`}
-                  onClick={handleResend}
-                  disabled={secondsRemaining !== 0 || isResending}
-                >
-                  {isResending ? "Sending..." : "Resend code"}
-                </button>
-              </p>
-              <p className="text-xs">
-                {secondsRemaining === 0
-                  ? "You can request a new code now."
-                  : `You can request a new code in ${secondsRemaining}s.`}
-              </p>
-            </div>
-          </form>
+    <div className="min-h-screen bg-[rgb(var(--color-background))] flex items-center justify-center p-4 relative overflow-hidden">
+       {/* Background Decor */}
+       <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-indigo-500/5 rounded-full blur-[150px]" />
+       </div>
+
+       <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-[500px] relative z-10"
+      >
+        <Card className="rounded-[3rem] p-8 md:p-14 shadow-2xl border-none bg-white overflow-hidden relative">
+           <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-500" />
+           
+           <div className="relative z-10 space-y-10">
+              <div className="text-center space-y-4">
+                 <div className="h-20 w-20 rounded-[2.5rem] bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-6 shadow-xl border border-indigo-100 scale-110">
+                    <ShieldCheck className="h-10 w-10" />
+                 </div>
+                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">Security Check</h2>
+                 <p className="text-sm font-medium text-slate-500 leading-relaxed">
+                    We've sent a 6-digit verification code to <br />
+                    <span className="text-indigo-600 font-black">{pendingUser?.email || "your email"}</span>
+                 </p>
+              </div>
+
+              <form onSubmit={handleVerify} className="space-y-8">
+                 <div className="flex justify-center gap-3">
+                    {otp.map((data, index) => (
+                      <input
+                        key={index}
+                        type="text"
+                        maxLength="1"
+                        className="w-12 h-16 md:w-14 md:h-20 text-center text-2xl font-black rounded-2xl border-2 border-slate-100 bg-slate-50/50 focus:border-indigo-600 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 transition-all text-slate-900 shadow-sm"
+                        value={data}
+                        onChange={(e) => handleChange(e.target, index)}
+                        onFocus={(e) => e.target.select()}
+                      />
+                    ))}
+                 </div>
+
+                 <Button
+                    type="submit"
+                    isLoading={otpVerificationStatus === "loading"}
+                    className="w-full h-16 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-xl shadow-indigo-500/40 text-lg group"
+                 >
+                    Verify & Continue
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                 </Button>
+              </form>
+
+              <div className="pt-6 border-t border-slate-50 text-center space-y-6">
+                 <div className="flex items-center justify-center gap-2">
+                    {timer > 0 ? (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl text-slate-400 text-xs font-black uppercase tracking-widest border border-slate-100">
+                         Resend in {timer}s
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={handleResend}
+                        disabled={otpResendStatus === "loading"}
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-black uppercase tracking-widest border border-indigo-100 rounded-xl transition-all"
+                      >
+                         <RefreshCcw className={`h-3 w-3 ${otpResendStatus === "loading" ? "animate-spin" : ""}`} />
+                         Resend Secure Code
+                      </button>
+                    )}
+                 </div>
+                 
+                 <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase text-slate-300 tracking-[0.2em]">
+                    <ShieldCheck className="h-3 w-3" />
+                    Encrypted Multi-Factor Auth
+                 </div>
+              </div>
+           </div>
         </Card>
-      </div>
+      </motion.div>
     </div>
   );
 };
