@@ -69,7 +69,7 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
                    animate={{ opacity: 1 }}
                    className="flex flex-col"
                  >
-                    <span className="text-sm font-black text-slate-900 tracking-tight leading-none">Ai Lesson </span>
+                    <span className="text-sm font-black text-slate-900 tracking-tight leading-none">Lesson Orbit </span>
                     
                  </motion.div>
               )}
