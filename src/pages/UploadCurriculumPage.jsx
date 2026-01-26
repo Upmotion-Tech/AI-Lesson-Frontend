@@ -175,7 +175,7 @@ const UploadCurriculumPage = () => {
         <Modal
           isOpen={isUploadModalOpen}
           onClose={() => setIsUploadModalOpen(false)}
-          title="Ingest Curriculum Source"
+          title="Curriculum Source"
           size="md"
         >
           <div className="space-y-8 p-2">

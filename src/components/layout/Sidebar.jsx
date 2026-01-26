@@ -14,7 +14,6 @@ import {
   Library,
   GraduationCap
 } from "lucide-react";
-import IconButton from "../common/IconButton.jsx";
 import AiLessonLogo from "../../assets/Ai-lesson-logo.png";
 
 const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
@@ -50,7 +49,7 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
       <motion.aside
         initial={false}
         animate={{ 
-          width: isCollapsed ? 88 : 280,
+          width: isCollapsed ? 96 : 280,
           x: isMobileOpen ? 0 : 0 
         }}
         className={`fixed lg:static top-0 bottom-0 left-0 z-50 bg-white border-r border-slate-100 flex flex-col transition-all duration-500 ease-in-out shadow-2xl shadow-indigo-500/5 ${
@@ -58,26 +57,36 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
         }`}
       >
         {/* Sidebar Brand/Header */}
-        <div className="h-24 flex items-center px-6 mb-4">
-           <div className="flex items-center gap-4 overflow-hidden">
-              <div className="h-12 w-12 rounded-2xl bg-indigo-600 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/30">
-                 <img src={AiLessonLogo} alt="Logo" className="h-7 w-7 invert brightness-0" />
+        <div className={`relative h-24 flex items-center mb-4 transition-all duration-300 ${isCollapsed ? "px-4" : "px-6"}`}>
+           <div className={`flex items-center w-full overflow-hidden ${isCollapsed ? "justify-center" : "gap-4"}`}>
+              {/* Logo - Always Visible */}
+              <div className={`rounded-xl bg-indigo-600 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/30 transition-all duration-300 ${isCollapsed ? "h-10 w-10" : "h-12 w-12"}`}>
+                 <img src={AiLessonLogo} alt="Logo" className={`invert brightness-0 transition-all duration-300 ${isCollapsed ? "h-6 w-6" : "h-7 w-7"}`} />
               </div>
+              
+              {/* Brand Text - Hidden when collapsed */}
               {!isCollapsed && (
                  <motion.div
-                   initial={{ opacity: 0 }}
-                   animate={{ opacity: 1 }}
-                   className="flex flex-col"
+                   initial={{ opacity: 0, x: -20 }}
+                   animate={{ opacity: 1, x: 0 }}
+                   className="flex flex-col min-w-0"
                  >
-                    <span className="text-sm font-black text-slate-900 tracking-tight leading-none">Lesson Orbit </span>
-                    
+                    <span className="text-sm font-black text-slate-900 tracking-tight leading-none truncate">Lesson Orbit</span>
                  </motion.div>
               )}
            </div>
+
+           {/* Toggle Arrow - Floating on the edge */}
+           <button 
+                onClick={toggleCollapse}
+                className="absolute -right-3 top-10 h-7 w-7 bg-white border border-slate-100 rounded-full shadow-sm flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-100 transition-all z-50 cursor-pointer"
+              >
+                {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+              </button>
         </div>
 
         {/* Navigation Core */}
-        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 mx-auto px-4 space-y-2 overflow-y-auto">
            {navItems.map((item) => {
              const isActive = location.pathname === item.path;
              return (
@@ -121,27 +130,21 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
         </nav>
 
         {/* Sidebar Footer/Utilities */}
-        {/* <div className="p-4 border-t border-slate-50 space-y-4">
+        <div className="p-4 border-t border-slate-50 space-y-4">
            {!isCollapsed && (
               <div className="p-5 rounded-[2rem] bg-indigo-600 text-white relative overflow-hidden group">
                  <Zap className="absolute -bottom-4 -right-4 h-20 w-20 opacity-10 group-hover:scale-125 transition-transform" />
-                 <p className="text-[10px] font-black uppercase tracking-widest mb-1 text-indigo-200">System Priority</p>
-                 <p className="text-xs font-bold leading-relaxed mb-4">You have 4 new AI insights available.</p>
-                 <button className="text-[10px] font-black uppercase tracking-widest px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl backdrop-blur-md transition-all">
-                    View Insights
-                 </button>
+                 <p className="text-[10px] font-black uppercase tracking-widest mb-1 text-indigo-200">Need Help?</p>
+                 <p className="text-xs font-bold leading-relaxed mb-4">Contact our support team for any assistance.</p>
+                 <a 
+                   href="mailto:customerSupport@scottmanconsulting.com"
+                   className="inline-block text-[10px] font-black uppercase tracking-widest px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl backdrop-blur-md transition-all"
+                 >
+                   Email Support
+                 </a>
               </div>
            )}
-
-           <div className={`flex items-center gap-4 ${isCollapsed ? "justify-center" : "px-3"}`}>
-              <IconButton 
-                onClick={toggleCollapse}
-                className="text-slate-400 hover:bg-slate-50 h-12 w-12 rounded-2xl flex items-center justify-center"
-              >
-                {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
-              </IconButton>
-           </div>
-        </div> */}
+        </div>
       </motion.aside>
 
       {/* Mobile Back-overlay */}
