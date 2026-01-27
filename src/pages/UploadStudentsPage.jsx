@@ -85,7 +85,7 @@ const UploadStudentsPage = () => {
               </h1>
               <p className="text-xl text-white/50 font-medium leading-relaxed">
                 Sync your class performance data to empower the AI to generate tiered instruction 
-                that meets every student where they are throughout your curriculum.
+                that meets every student instructional level.
               </p>
             </div>
             
@@ -94,7 +94,7 @@ const UploadStudentsPage = () => {
               className="rounded-[2rem] h-16 px-10 text-base font-black shadow-2xl shadow-emerald-950/20 group transform transition-all hover:scale-105"
               icon={<Plus className="h-6 w-6 group-hover:scale-125 transition-transform duration-500" />}
             >
-              Sync Population
+              Upload Student Data
             </Button>
           </div>
         </div>

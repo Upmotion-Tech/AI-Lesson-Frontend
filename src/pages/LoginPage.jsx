@@ -75,8 +75,8 @@ const LoginPage = () => {
                  <div className="h-20 w-20 rounded-[2rem] bg-indigo-600 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-500/40 rotate-12">
                    <Rocket className="h-10 w-10 text-white" />
                  </div>
-                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">Welcome back</h2>
-                 <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Educator Portal Access</p>
+                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">WELCOME BACK</h2>
+                 <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Educator Portal</p>
                </div>
 
                <LoginForm />

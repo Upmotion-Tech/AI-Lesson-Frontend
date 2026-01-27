@@ -74,9 +74,9 @@ const GenerateLessonPage = () => {
   const currentStudentData = studentDataList.find(s => s._id === formData.studentDataId);
 
   const steps = [
-    { id: 1, title: "Foundation", icon: BookOpen, desc: "Select Curriculum" },
-    { id: 2, title: "Audience", icon: Users, desc: "Select Student Data" },
-    { id: 3, title: "Intelligence", icon: BrainCircuit, desc: "Configure AI" }
+    { id: 1, title: "Curriculum", icon: BookOpen, desc: "Select Curriculum" },
+    { id: 2, title: "Student Data", icon: Users, desc: "Select Student Data" },
+    { id: 3, title: "Lesson Plan", icon: BrainCircuit, desc: "Generate Lesson Plan" }
   ];
 
   return (

@@ -94,7 +94,7 @@ const UploadCurriculumPage = () => {
               className="text-indigo-700 rounded-[2rem] h-16 px-10 text-base font-black shadow-2xl shadow-indigo-950/20 group transform transition-all hover:scale-105"
               icon={<Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-500" />}
             >
-              Upload Document
+              Upload Curriculum Document
             </Button>
           </div>
         </div>
@@ -175,7 +175,7 @@ const UploadCurriculumPage = () => {
         <Modal
           isOpen={isUploadModalOpen}
           onClose={() => setIsUploadModalOpen(false)}
-          title="Ingest Curriculum Source"
+          title="Curriculum Source"
           size="md"
         >
           <div className="space-y-8 p-2">
