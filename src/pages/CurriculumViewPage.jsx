@@ -260,10 +260,12 @@ const CurriculumViewPage = () => {
                      <Button 
                       onClick={() => setShowFullText(true)}
                       variant="outline" 
-                      className="pointer-events-auto shadow-2xl bg-card border-indigo-500/20 h-14 px-8 rounded-2xl hover:bg-slate-50 transition-all font-bold group"
+                      className="flex items-center gap-2 pointer-events-auto shadow-2xl bg-card border-indigo-500/20 h-14 px-8 rounded-2xl hover:bg-slate-50 transition-all font-bold group"
                     >
-                      Continue Reading
-                      <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      <div className="flex items-center align-center justify-center gap-2 ">
+                        Continue Reading
+                        <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </div>
                     </Button>
                   </div>
                 )}

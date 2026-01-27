@@ -6,6 +6,7 @@ const Modal = ({
   onClose,
   title,
   children,
+  footer,
   size = "md",
   className = "",
 }) => {
@@ -32,11 +33,9 @@ const Modal = ({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
     >
       <div
         className={`bg-background border border-border rounded-lg shadow-xl ${sizeClasses[size]} w-full ${className}`}
-        onClick={(e) => e.stopPropagation()}
       >
         {title && (
           <div className="flex items-center justify-between p-6 border-b border-border">
@@ -50,6 +49,11 @@ const Modal = ({
           </div>
         )}
         <div className="p-6 max-h-[85vh] overflow-y-auto">{children}</div>
+        {footer && (
+          <div className="flex items-center justify-end p-6 border-t border-border bg-muted/20">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );
