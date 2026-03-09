@@ -12,7 +12,7 @@ import { toast } from "react-hot-toast";
 const LoginForm = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { status, otpRequired } = useAppSelector((state) => state.auth);
+  const { status } = useAppSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -114,6 +114,12 @@ const LoginForm = () => {
         >
           Remember me
         </label>
+        <Link
+          to="/forgot-password"
+          className="ml-auto text-xs font-semibold text-indigo-600 hover:opacity-80"
+        >
+          Forgot password?
+        </Link>
       </div>
 
       <Button type="submit" disabled={isLoading} className="w-full">

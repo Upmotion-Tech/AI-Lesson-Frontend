@@ -1,34 +1,30 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
-import { verifyLoginOtp, resendLoginOtp } from "../store/authThunks.js";
+import { verifyLoginOtp } from "../store/authThunks.js";
 import Button from "../components/common/Button.jsx";
-import { ShieldCheck, Mail, ArrowRight, RefreshCcw, CheckCircle2 } from "lucide-react";
+import Card from "../components/common/Card.jsx";
+import { ShieldCheck, ArrowRight } from "lucide-react";
 import { toast } from "react-hot-toast";
+import Input from "../components/common/Input.jsx";
 
 const OtpVerificationPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { otpToken, pendingUser, otpVerificationStatus, otpResendStatus } = useAppSelector((state) => state.auth);
+  const { otpToken, pendingUser, otpVerificationStatus } = useAppSelector((state) => state.auth);
   
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [timer, setTimer] = useState(60);
+  const [useBackupCode, setUseBackupCode] = useState(false);
+  const [backupCode, setBackupCode] = useState("");
 
   useEffect(() => {
     if (!otpToken) {
       navigate("/login");
     }
   }, [otpToken, navigate]);
-
-  useEffect(() => {
-    let interval;
-    if (timer > 0) {
-      interval = setInterval(() => setTimer((t) => t - 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timer]);
 
   const handleChange = (element, index) => {
     if (isNaN(element.value)) return false;
@@ -43,28 +39,23 @@ const OtpVerificationPage = () => {
   const handleVerify = async (e) => {
     e.preventDefault();
     const otpString = otp.join("");
-    if (otpString.length < 6) {
-      toast.error("Please enter the full 6-digit code");
+    const codeValue = useBackupCode ? backupCode.trim() : otpString;
+
+    if (!codeValue || (!useBackupCode && otpString.length < 6)) {
+      toast.error(
+        useBackupCode
+          ? "Please enter your backup code"
+          : "Please enter the full 6-digit code"
+      );
       return;
     }
 
     try {
-      await dispatch(verifyLoginOtp({ otp: otpString, otpToken })).unwrap();
+      await dispatch(verifyLoginOtp({ otpCode: codeValue, otpToken })).unwrap();
       toast.success("Security verified!");
       navigate("/");
     } catch (error) {
-      toast.error(error || "Invalid verification code");
-    }
-  };
-
-  const handleResend = async () => {
-    if (timer > 0) return;
-    try {
-      await dispatch(resendLoginOtp({ email: pendingUser.email })).unwrap();
-      setTimer(60);
-      toast.success("New code sent to your email");
-    } catch (error) {
-      toast.error(error || "Failed to resend code");
+      toast.error(error || "Invalid authenticator or backup code");
     }
   };
 
@@ -90,13 +81,22 @@ const OtpVerificationPage = () => {
                  </div>
                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Security Check</h2>
                  <p className="text-sm font-medium text-slate-500 leading-relaxed">
-                    We've sent a 6-digit verification code to <br />
-                    <span className="text-indigo-600 font-black">{pendingUser?.email || "your email"}</span>
+                    Enter your authenticator app 6-digit verification code <br />
+                    <span className="text-indigo-600 font-black">{pendingUser?.email || "for your account"}</span>
                  </p>
               </div>
 
               <form onSubmit={handleVerify} className="space-y-8">
-                 <div className="flex justify-center gap-3">
+                 {useBackupCode ? (
+                  <Input
+                    label="Backup Code"
+                    value={backupCode}
+                    onChange={(event) => setBackupCode(event.target.value)}
+                    placeholder="Enter one-time backup code"
+                    required
+                  />
+                 ) : (
+                  <div className="flex justify-center gap-3">
                     {otp.map((data, index) => (
                       <input
                         key={index}
@@ -108,6 +108,17 @@ const OtpVerificationPage = () => {
                         onFocus={(e) => e.target.select()}
                       />
                     ))}
+                  </div>
+                 )}
+
+                 <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setUseBackupCode((previous) => !previous)}
+                    className="text-xs font-bold uppercase tracking-widest text-indigo-600 hover:text-indigo-800"
+                  >
+                    {useBackupCode ? "Use Authenticator Code" : "Use Backup Code Instead"}
+                  </button>
                  </div>
 
                  <Button
@@ -115,29 +126,14 @@ const OtpVerificationPage = () => {
                     isLoading={otpVerificationStatus === "loading"}
                     className="w-full h-16 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black shadow-xl shadow-indigo-500/40 text-lg group"
                  >
-                    Verify & Continue
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  <span className="flex items-center justify-center gap-2">
+                    Verify & Continue 
+                    <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </span>
                  </Button>
               </form>
 
               <div className="pt-6 border-t border-slate-50 text-center space-y-6">
-                 <div className="flex items-center justify-center gap-2">
-                    {timer > 0 ? (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl text-slate-400 text-xs font-black uppercase tracking-widest border border-slate-100">
-                         Resend in {timer}s
-                      </div>
-                    ) : (
-                      <button 
-                        onClick={handleResend}
-                        disabled={otpResendStatus === "loading"}
-                        className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-black uppercase tracking-widest border border-indigo-100 rounded-xl transition-all"
-                      >
-                         <RefreshCcw className={`h-3 w-3 ${otpResendStatus === "loading" ? "animate-spin" : ""}`} />
-                         Resend Secure Code
-                      </button>
-                    )}
-                 </div>
-                 
                  <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase text-slate-300 tracking-[0.2em]">
                     <ShieldCheck className="h-3 w-3" />
                     Encrypted Multi-Factor Auth

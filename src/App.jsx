@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { Provider } from "react-redux";
 import { RouterProvider } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { toast, Toaster, ToastBar } from "react-hot-toast";
+import { X } from "lucide-react";
 import store from "./store/index.js";
 import router from "./router/router.jsx";
 import { fetchMe } from "./store/authThunks.js";
@@ -52,7 +53,26 @@ function App() {
               },
             },
           }}
-        />
+        >
+          {(t) => (
+            <ToastBar toast={t}>
+              {({ icon, message }) => (
+                <div className="flex items-center gap-3">
+                  {icon}
+                  <span className="flex-1">{message}</span>
+                  <button
+                    type="button"
+                    onClick={() => toast.dismiss(t.id)}
+                    className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                    aria-label="Dismiss notification"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </ToastBar>
+          )}
+        </Toaster>
       </Provider>
     </ErrorBoundary>
   );
