@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
-  BookOpen,
   Users,
   Sparkles,
   PanelLeftClose,
@@ -12,7 +12,9 @@ import {
   ChevronRight,
   Zap,
   Library,
-  GraduationCap
+  UserCircle2,
+  Settings,
+  Mail
 } from "lucide-react";
 import AiLessonLogo from "../../assets/Ai-lesson-logo.png";
 
@@ -33,6 +35,8 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
     { path: "/upload-students", label: "Upload Students", icon: Users, color: "text-emerald-600", bg: "bg-emerald-50" },
     { path: "/generate-lesson", label: "Generate Lesson", icon: Sparkles, color: "text-violet-600", bg: "bg-violet-50" },
     { path: "/lessons", label: "My Lesson Plans", icon: FileText, color: "text-rose-600", bg: "bg-rose-50" },
+    { path: "/profile", label: "Profile", icon: UserCircle2, color: "text-sky-600", bg: "bg-sky-50" },
+    { path: "/settings", label: "Settings", icon: Settings, color: "text-slate-600", bg: "bg-slate-100" },
   ];
 
   const toggleCollapse = () => {
@@ -40,19 +44,20 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
   };
 
   const textVariants = {
-    expanded: { opacity: 1, x: 0, display: "block" },
-    collapsed: { opacity: 0, x: -10, transitionEnd: { display: "none" } }
+    expanded: { opacity: 1, x: 0, width: "auto" },
+    collapsed: { opacity: 0, x: -8, width: 0 }
   };
 
   return (
     <>
       <motion.aside
         initial={false}
-        animate={{ 
+        animate={{
           width: isCollapsed ? 96 : 280,
-          x: isMobileOpen ? 0 : 0 
         }}
-        className={`fixed lg:static top-0 bottom-0 left-0 z-50 bg-white border-r border-slate-100 flex flex-col transition-all duration-500 ease-in-out shadow-2xl shadow-indigo-500/5 ${
+        transition={{ type: "spring", stiffness: 260, damping: 30, mass: 0.8 }}
+        style={{ willChange: "width" }}
+        className={`fixed lg:static top-0 bottom-0 left-0 z-50 bg-white border-r border-slate-100 flex flex-col shadow-2xl shadow-indigo-500/5 ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
@@ -67,8 +72,10 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
               {/* Brand Text - Hidden when collapsed */}
               {!isCollapsed && (
                  <motion.div
-                   initial={{ opacity: 0, x: -20 }}
+                   initial={{ opacity: 0, x: -12 }}
                    animate={{ opacity: 1, x: 0 }}
+                   exit={{ opacity: 0, x: -12 }}
+                   transition={{ duration: 0.2 }}
                    className="flex flex-col min-w-0"
                  >
                     <span className="text-sm font-black text-slate-900 tracking-tight leading-none truncate">Lesson Orbit</span>
@@ -94,7 +101,7 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
                  key={item.path}
                  to={item.path}
                  onClick={onClose}
-                 className={`group flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 relative overflow-hidden ${
+                 className={`group flex items-center gap-2 p-4 rounded-2xl transition-all duration-300 relative overflow-hidden ${
                    isActive 
                     ? "bg-slate-900 text-white shadow-xl shadow-slate-900/10" 
                     : "text-slate-500 hover:bg-slate-50"
@@ -110,15 +117,16 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
                  <div className={`relative z-10 flex items-center justify-center h-6 w-6 shrink-0 transition-transform group-hover:scale-110 ${isActive ? "text-white" : item.color}`}>
                    <item.icon className="h-5 w-5" />
                  </div>
-                 {!isCollapsed && (
-                    <motion.span
-                      variants={textVariants}
-                      animate={isCollapsed ? "collapsed" : "expanded"}
-                      className={`relative z-10 text-xs font-black uppercase tracking-widest ${isActive ? "text-white" : "text-slate-500"}`}
-                    >
-                      {item.label}
-                    </motion.span>
-                 )}
+                 <motion.span
+                   variants={textVariants}
+                   animate={isCollapsed ? "collapsed" : "expanded"}
+                   transition={{ duration: 0.2 }}
+                   className={`relative z-10 text-xs font-black uppercase tracking-widest whitespace-nowrap overflow-hidden ${
+                     isActive ? "text-white" : "text-slate-500"
+                   }`}
+                 >
+                   {item.label}
+                 </motion.span>
                  {isActive && !isCollapsed && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute right-4 z-10">
                        <ChevronRight className="h-4 w-4 text-white opacity-40" />
@@ -138,11 +146,22 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
                  <p className="text-xs font-bold leading-relaxed mb-4">Contact our support team for any assistance.</p>
                  <a 
                    href="mailto:customerSupport@scottmanconsulting.com"
-                   className="inline-block text-[10px] font-black uppercase tracking-widest px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl backdrop-blur-md transition-all"
+                   className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl backdrop-blur-md transition-all"
                  >
+                   <Mail className="h-3.5 w-3.5" />
                    Email Support
                  </a>
               </div>
+           )}
+           {isCollapsed && (
+             <a
+               href="mailto:customerSupport@scottmanconsulting.com"
+               className="flex h-11 w-11 mx-auto items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 transition-colors"
+               title="Email Support"
+               aria-label="Email Support"
+             >
+               <Mail className="h-4 w-4" />
+             </a>
            )}
         </div>
       </motion.aside>

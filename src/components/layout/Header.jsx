@@ -1,21 +1,36 @@
 import { useAppDispatch } from "../../hooks/useAppDispatch.js";
 import { useAppSelector } from "../../hooks/useAppSelector.js";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { clearAuth } from "../../store/authSlice.js";
-import { LogOut, Menu, User, X, Sparkles, Bell, Search } from "lucide-react";
-import Button from "../common/Button.jsx";
+import { ChevronDown, LogOut, Menu, Settings, User, X } from "lucide-react";
 import IconButton from "../common/IconButton.jsx";
-import ThemeToggle from "./ThemeToggle.jsx";
+import { getUserAvatarUrl } from "../../utils/userAvatar.js";
 
 const Header = ({ onToggleMenu, isMobileMenuOpen }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   const handleLogout = () => {
     dispatch(clearAuth());
     navigate("/login");
   };
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (!menuRef.current?.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  const avatarUrl = getUserAvatarUrl(user?.profileImage);
 
   const renderMenuToggle = () => {
     if (!onToggleMenu) {
@@ -65,25 +80,71 @@ const Header = ({ onToggleMenu, isMobileMenuOpen }) => {
 
           <div className="flex items-center gap-4">
             {user && (
-              <div className="flex items-center gap-3">
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsMenuOpen((prev) => !prev)}
+                  className="flex items-center gap-3 hover:bg-slate-50 rounded-xl px-2 py-1.5 transition-colors"
+                >
                 <div className="text-right hidden sm:block">
                    <p className="text-sm font-black text-slate-900 leading-none">{user.name || "Elevated User"}</p>
                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mt-1">Instructor Portal</p>
                 </div>
                 <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-800 flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/20 text-sm border-2 border-white">
-                  {user.name ? user.name[0].toUpperCase() : <User className="h-5 w-5" />}
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={user.name || "User avatar"}
+                      className="h-full w-full rounded-2xl object-cover"
+                    />
+                  ) : user.name ? (
+                    user.name[0].toUpperCase()
+                  ) : (
+                    <User className="h-5 w-5" />
+                  )}
                 </div>
+                <ChevronDown className="h-4 w-4 text-slate-500" />
+                </button>
+
+                {isMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white shadow-lg py-1 z-50">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        navigate("/profile");
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                    >
+                      <User className="h-4 w-4" />
+                      Profile
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        navigate("/settings");
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                    >
+                      <Settings className="h-4 w-4" />
+                      Settings
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm font-medium text-rose-600 hover:bg-rose-50 flex items-center gap-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             )}
-            
-            <IconButton 
-              variant="ghost" 
-              onClick={handleLogout}
-              className="text-slate-400 hover:text-rose-500 transition-colors"
-              title="Logout"
-            >
-              <LogOut className="h-5 w-5" />
-            </IconButton>
           </div>
         </div>
       </div>

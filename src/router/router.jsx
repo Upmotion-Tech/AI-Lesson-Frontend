@@ -3,6 +3,8 @@ import LoginPage from "../pages/LoginPage.jsx";
 import SignupPage from "../pages/SignupPage.jsx";
 import OtpVerificationPage from "../pages/OtpVerificationPage.jsx";
 import LoginSuccessPage from "../pages/LoginSuccessPage.jsx";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage.jsx";
+import ResetPasswordPage from "../pages/ResetPasswordPage.jsx";
 import DashboardPage from "../pages/DashboardPage.jsx";
 import UploadCurriculumPage from "../pages/UploadCurriculumPage.jsx";
 import UploadStudentsPage from "../pages/UploadStudentsPage.jsx";
@@ -11,6 +13,8 @@ import LessonViewPage from "../pages/LessonViewPage.jsx";
 import LessonPlansPage from "../pages/LessonPlansPage.jsx";
 import CurriculumViewPage from "../pages/CurriculumViewPage.jsx";
 import StudentDataViewPage from "../pages/StudentDataViewPage.jsx";
+import ProfilePage from "../pages/ProfilePage.jsx";
+import SettingsPage from "../pages/SettingsPage.jsx";
 import AppLayout from "../components/layout/AppLayout.jsx";
 import RequireAuth from "./RequireAuth.jsx";
 
@@ -30,6 +34,14 @@ const router = createBrowserRouter([
   {
     path: "/login-success",
     element: <LoginSuccessPage />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPasswordPage />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPasswordPage />,
   },
   {
     path: "/",
@@ -108,6 +120,26 @@ const router = createBrowserRouter([
       <RequireAuth>
         <AppLayout>
           <StudentDataViewPage />
+        </AppLayout>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/profile",
+    element: (
+      <RequireAuth>
+        <AppLayout>
+          <ProfilePage />
+        </AppLayout>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/settings",
+    element: (
+      <RequireAuth>
+        <AppLayout>
+          <SettingsPage />
         </AppLayout>
       </RequireAuth>
     ),
