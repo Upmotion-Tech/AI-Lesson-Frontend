@@ -20,20 +20,22 @@ const SignupForm = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    termsAccepted: false,
   });
 
   const [validationErrors, setValidationErrors] = useState({});
 
   const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: type === "checkbox" ? checked : value,
     });
 
-    if (validationErrors[e.target.name]) {
+    if (validationErrors[name]) {
       setValidationErrors({
         ...validationErrors,
-        [e.target.name]: "",
+        [name]: "",
       });
     }
   };
@@ -118,6 +120,33 @@ const SignupForm = () => {
         required
         showPasswordToggle
       />
+
+      <div className="space-y-2">
+        <label className="flex items-start gap-3 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            name="termsAccepted"
+            checked={formData.termsAccepted}
+            onChange={handleChange}
+            className="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+            required
+          />
+          <span>
+            I agree to the{" "}
+            <Link to="/legal/terms" className="text-emerald-700 font-semibold hover:underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link to="/legal/privacy" className="text-emerald-700 font-semibold hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </span>
+        </label>
+        {validationErrors.termsAccepted && (
+          <p className="text-sm text-danger">{validationErrors.termsAccepted}</p>
+        )}
+      </div>
 
       <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? "Creating account..." : "Sign Up"}

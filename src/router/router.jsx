@@ -5,6 +5,11 @@ import OtpVerificationPage from "../pages/OtpVerificationPage.jsx";
 import LoginSuccessPage from "../pages/LoginSuccessPage.jsx";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage.jsx";
 import ResetPasswordPage from "../pages/ResetPasswordPage.jsx";
+import LegalDocumentationPage from "../pages/LegalDocumentationPage.jsx";
+import TermsOfServicePage from "../pages/TermsOfServicePage.jsx";
+import PrivacyPolicyPage from "../pages/PrivacyPolicyPage.jsx";
+import AIDisclaimerPage from "../pages/AIDisclaimerPage.jsx";
+import AcceptableUsePolicyPage from "../pages/AcceptableUsePolicyPage.jsx";
 import DashboardPage from "../pages/DashboardPage.jsx";
 import UploadCurriculumPage from "../pages/UploadCurriculumPage.jsx";
 import UploadStudentsPage from "../pages/UploadStudentsPage.jsx";
@@ -17,15 +22,24 @@ import ProfilePage from "../pages/ProfilePage.jsx";
 import SettingsPage from "../pages/SettingsPage.jsx";
 import AppLayout from "../components/layout/AppLayout.jsx";
 import RequireAuth from "./RequireAuth.jsx";
+import RequireGuest from "./RequireGuest.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/login",
-    element: <LoginPage />,
+    element: (
+      <RequireGuest>
+        <LoginPage />
+      </RequireGuest>
+    ),
   },
   {
     path: "/signup",
-    element: <SignupPage />,
+    element: (
+      <RequireGuest>
+        <SignupPage />
+      </RequireGuest>
+    ),
   },
   {
     path: "/verify-otp",
@@ -42,6 +56,26 @@ const router = createBrowserRouter([
   {
     path: "/reset-password",
     element: <ResetPasswordPage />,
+  },
+  {
+    path: "/legal",
+    element: <LegalDocumentationPage />,
+  },
+  {
+    path: "/legal/terms",
+    element: <TermsOfServicePage />,
+  },
+  {
+    path: "/legal/privacy",
+    element: <PrivacyPolicyPage />,
+  },
+  {
+    path: "/legal/ai-disclaimer",
+    element: <AIDisclaimerPage />,
+  },
+  {
+    path: "/legal/acceptable-use",
+    element: <AcceptableUsePolicyPage />,
   },
   {
     path: "/",

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import LoginForm from "../components/LoginForm.jsx";
 import { Sparkles, Rocket, BrainCircuit, Zap, ArrowRight, ShieldCheck } from "lucide-react";
 
@@ -79,9 +80,15 @@ const LoginPage = () => {
                  <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Educator Portal</p>
                </div>
 
-               <LoginForm />
-
-           
+               <div className="space-y-4">
+                 <LoginForm />
+                 <Link
+                   to="/legal"
+                   className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-600 transition hover:border-emerald-300 hover:text-emerald-700"
+                 >
+                   View Legal Docs
+                 </Link>
+               </div>
              </div>
           </div>
         </motion.div>
