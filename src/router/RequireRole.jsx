@@ -8,7 +8,13 @@ const normalizeRoles = (role) => {
 };
 
 const RequireRole = ({ roles = [], children, fallbackPath = "/" }) => {
-  const userRole = useAppSelector((state) => state.auth.user?.role);
+  const { user, status } = useAppSelector((state) => state.auth);
+
+  if (status === "loading") {
+    return null; // Don't redirect while auth data is still fetching
+  }
+
+  const userRole = user?.role;
   const userRoles = normalizeRoles(userRole);
   const allowedRoles = Array.isArray(roles) ? roles : [roles];
   const hasRole = userRoles.some((role) => allowedRoles.includes(role));

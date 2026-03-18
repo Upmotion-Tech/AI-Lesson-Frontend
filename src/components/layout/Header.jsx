@@ -3,7 +3,7 @@ import { useAppSelector } from "../../hooks/useAppSelector.js";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { clearAuth } from "../../store/authSlice.js";
-import { ChevronDown, LogOut, Menu, Settings, User, X } from "lucide-react";
+import { ArrowLeft, ChevronDown, LogOut, Menu, Settings, User, X } from "lucide-react";
 import IconButton from "../common/IconButton.jsx";
 import { getUserAvatarUrl } from "../../utils/userAvatar.js";
 
@@ -31,6 +31,7 @@ const Header = ({ onToggleMenu, isMobileMenuOpen }) => {
   }, []);
 
   const avatarUrl = getUserAvatarUrl(user?.profileImage);
+  const canGoBack = window.history.length > 1;
 
   const renderMenuToggle = () => {
     if (!onToggleMenu) {
@@ -63,8 +64,17 @@ const Header = ({ onToggleMenu, isMobileMenuOpen }) => {
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
               Lesson Orbit
             </p>
-            <p className="text-sm font-black text-slate-900">Workspace</p>
           </div>
+          {canGoBack && (
+            <IconButton
+              onClick={() => navigate(-1)}
+              variant="ghost"
+              size="md"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </IconButton>
+          )}
           {/* <div className="hidden md:flex items-center gap-3 py-2 px-4 bg-slate-50 border border-slate-100 rounded-2xl group transition-all hover:bg-white hover:shadow-lg hover:shadow-indigo-500/5 cursor-pointer">
              <Search className="h-4 w-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
              <span className="text-xs font-bold text-slate-400 group-hover:text-slate-600 transition-colors">Search anything...</span>

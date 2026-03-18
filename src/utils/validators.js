@@ -51,6 +51,9 @@ export const signupSchema = yup.object({
     .string()
     .required("Please confirm your password")
     .oneOf([yup.ref("password")], "Passwords must match"),
+  termsAccepted: yup
+    .boolean()
+    .oneOf([true], "You must agree to the Terms and Conditions"),
   role: yup.string().oneOf(["teacher", "admin"]).default("teacher"),
 });
 
