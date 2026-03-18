@@ -15,8 +15,14 @@ import CurriculumViewPage from "../pages/CurriculumViewPage.jsx";
 import StudentDataViewPage from "../pages/StudentDataViewPage.jsx";
 import ProfilePage from "../pages/ProfilePage.jsx";
 import SettingsPage from "../pages/SettingsPage.jsx";
+import AdminOverviewPage from "../pages/admin/AdminOverviewPage.jsx";
+import AdminUsersPage from "../pages/admin/AdminUsersPage.jsx";
+import AdminSubscriptionsPage from "../pages/admin/AdminSubscriptionsPage.jsx";
+import AdminModerationPage from "../pages/admin/AdminModerationPage.jsx";
+import AdminContentPage from "../pages/admin/AdminContentPage.jsx";
 import AppLayout from "../components/layout/AppLayout.jsx";
 import RequireAuth from "./RequireAuth.jsx";
+import RequireRole from "./RequireRole.jsx";
 
 const router = createBrowserRouter([
   {
@@ -47,9 +53,11 @@ const router = createBrowserRouter([
     path: "/",
     element: (
       <RequireAuth>
-        <AppLayout>
-          <DashboardPage />
-        </AppLayout>
+        <RequireRole roles={["teacher"]} fallbackPath="/admin">
+          <AppLayout>
+            <DashboardPage />
+          </AppLayout>
+        </RequireRole>
       </RequireAuth>
     ),
     errorElement: <div className="p-4">Error loading page</div>,
@@ -58,9 +66,11 @@ const router = createBrowserRouter([
     path: "/upload-curriculum",
     element: (
       <RequireAuth>
-        <AppLayout>
-          <UploadCurriculumPage />
-        </AppLayout>
+        <RequireRole roles={["teacher"]} fallbackPath="/admin">
+          <AppLayout>
+            <UploadCurriculumPage />
+          </AppLayout>
+        </RequireRole>
       </RequireAuth>
     ),
   },
@@ -68,9 +78,11 @@ const router = createBrowserRouter([
     path: "/upload-students",
     element: (
       <RequireAuth>
-        <AppLayout>
-          <UploadStudentsPage />
-        </AppLayout>
+        <RequireRole roles={["teacher"]} fallbackPath="/admin">
+          <AppLayout>
+            <UploadStudentsPage />
+          </AppLayout>
+        </RequireRole>
       </RequireAuth>
     ),
   },
@@ -78,9 +90,11 @@ const router = createBrowserRouter([
     path: "/generate-lesson",
     element: (
       <RequireAuth>
-        <AppLayout>
-          <GenerateLessonPage />
-        </AppLayout>
+        <RequireRole roles={["teacher"]} fallbackPath="/admin">
+          <AppLayout>
+            <GenerateLessonPage />
+          </AppLayout>
+        </RequireRole>
       </RequireAuth>
     ),
   },
@@ -88,9 +102,11 @@ const router = createBrowserRouter([
     path: "/lessons",
     element: (
       <RequireAuth>
-        <AppLayout>
-          <LessonPlansPage />
-        </AppLayout>
+        <RequireRole roles={["teacher"]} fallbackPath="/admin">
+          <AppLayout>
+            <LessonPlansPage />
+          </AppLayout>
+        </RequireRole>
       </RequireAuth>
     ),
   },
@@ -98,9 +114,11 @@ const router = createBrowserRouter([
     path: "/lessons/:id",
     element: (
       <RequireAuth>
-        <AppLayout>
-          <LessonViewPage />
-        </AppLayout>
+        <RequireRole roles={["teacher"]} fallbackPath="/admin">
+          <AppLayout>
+            <LessonViewPage />
+          </AppLayout>
+        </RequireRole>
       </RequireAuth>
     ),
   },
@@ -108,9 +126,11 @@ const router = createBrowserRouter([
     path: "/curriculum/:id",
     element: (
       <RequireAuth>
-        <AppLayout>
-          <CurriculumViewPage />
-        </AppLayout>
+        <RequireRole roles={["teacher"]} fallbackPath="/admin">
+          <AppLayout>
+            <CurriculumViewPage />
+          </AppLayout>
+        </RequireRole>
       </RequireAuth>
     ),
   },
@@ -118,9 +138,11 @@ const router = createBrowserRouter([
     path: "/students/:id",
     element: (
       <RequireAuth>
-        <AppLayout>
-          <StudentDataViewPage />
-        </AppLayout>
+        <RequireRole roles={["teacher"]} fallbackPath="/admin">
+          <AppLayout>
+            <StudentDataViewPage />
+          </AppLayout>
+        </RequireRole>
       </RequireAuth>
     ),
   },
@@ -141,6 +163,66 @@ const router = createBrowserRouter([
         <AppLayout>
           <SettingsPage />
         </AppLayout>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/admin",
+    element: (
+      <RequireAuth>
+        <RequireRole roles={["admin"]}>
+          <AppLayout>
+            <AdminOverviewPage />
+          </AppLayout>
+        </RequireRole>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/admin/users",
+    element: (
+      <RequireAuth>
+        <RequireRole roles={["admin"]}>
+          <AppLayout>
+            <AdminUsersPage />
+          </AppLayout>
+        </RequireRole>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/admin/subscriptions",
+    element: (
+      <RequireAuth>
+        <RequireRole roles={["admin"]}>
+          <AppLayout>
+            <AdminSubscriptionsPage />
+          </AppLayout>
+        </RequireRole>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/admin/moderation",
+    element: (
+      <RequireAuth>
+        <RequireRole roles={["admin"]}>
+          <AppLayout>
+            <AdminModerationPage />
+          </AppLayout>
+        </RequireRole>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/admin/content",
+    element: (
+      <RequireAuth>
+        <RequireRole roles={["admin"]}>
+          <AppLayout>
+            <AdminContentPage />
+          </AppLayout>
+        </RequireRole>
       </RequireAuth>
     ),
   },

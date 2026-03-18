@@ -1,0 +1,128 @@
+import { NavLink } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Shield,
+  Users,
+  CreditCard,
+  ShieldAlert,
+  LayoutDashboard,
+  FileText,
+} from "lucide-react";
+import AiLessonLogo from "../../assets/Ai-lesson-logo.png";
+
+const navItems = [
+  { path: "/admin", label: "Overview", icon: LayoutDashboard, color: "text-indigo-600" },
+  { path: "/admin/users", label: "Users", icon: Users, color: "text-emerald-600" },
+  {
+    path: "/admin/subscriptions",
+    label: "Subscriptions",
+    icon: CreditCard,
+    color: "text-amber-600",
+  },
+  {
+    path: "/admin/content",
+    label: "Content",
+    icon: FileText,
+    color: "text-blue-500",
+  },
+  // {
+  //   path: "/admin/moderation",
+  //   label: "Moderation",
+  //   icon: ShieldAlert,
+  //   color: "text-rose-600",
+  // },
+];
+
+const AdminSidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
+  return (
+    <>
+      <aside
+        className={`fixed lg:static top-0 bottom-0 left-0 z-50 w-[280px] bg-white border-r border-slate-100 flex flex-col shadow-2xl shadow-indigo-500/5 transition-transform duration-300 ${
+          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
+        <div className="h-24 flex items-center px-6">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+              <img
+                src={AiLessonLogo}
+                alt="Logo"
+                className="h-7 w-7 invert brightness-0"
+              />
+            </div>
+            <div>
+              <span className="text-sm font-black text-slate-900 tracking-tight leading-none block">
+                Lesson Orbit
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                Admin Portal
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.path === "/admin"}
+              onClick={onClose}
+              className={({ isActive }) =>
+                `group flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${
+                  isActive
+                    ? "bg-slate-900 text-white shadow-xl shadow-slate-900/10"
+                    : "text-slate-500 hover:bg-slate-50"
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <item.icon
+                    className={`h-5 w-5 ${isActive ? "text-white" : item.color}`}
+                  />
+                  <span
+                    className={`text-xs font-black uppercase tracking-widest ${
+                      isActive ? "text-white" : "text-slate-500"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t border-slate-50">
+          <div className="p-4 rounded-2xl bg-indigo-600 text-white">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="h-4 w-4" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200">
+                Security
+              </p>
+            </div>
+            <p className="text-xs font-semibold leading-relaxed">
+              Admin controls are server-validated with role checks.
+            </p>
+          </div>
+        </div>
+      </aside>
+
+      <AnimatePresence>
+        {isMobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="lg:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-40"
+            onClick={onClose}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+export default AdminSidebar;

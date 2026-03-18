@@ -51,9 +51,13 @@ const OtpVerificationPage = () => {
     }
 
     try {
-      await dispatch(verifyLoginOtp({ otpCode: codeValue, otpToken })).unwrap();
+      const result = await dispatch(
+        verifyLoginOtp({ otpCode: codeValue, otpToken })
+      ).unwrap();
       toast.success("Security verified!");
-      navigate("/");
+      const role = result?.user?.role;
+      const roles = Array.isArray(role) ? role : role ? [role] : [];
+      navigate(roles.includes("admin") ? "/admin" : "/");
     } catch (error) {
       toast.error(error || "Invalid authenticator or backup code");
     }

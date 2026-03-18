@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import Header from "./Header.jsx";
 import Sidebar from "./Sidebar.jsx";
+import { useAppSelector } from "../../hooks/useAppSelector.js";
+import AdminSidebar from "../admin/AdminSidebar.jsx";
 
 const AppLayout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const userRole = useAppSelector((state) => state.auth.user?.role);
+  const normalizedRoles = Array.isArray(userRole) ? userRole : userRole ? [userRole] : [];
+  const isAdmin = normalizedRoles.includes("admin");
+  const SidebarComponent = isAdmin ? AdminSidebar : Sidebar;
 
   useEffect(() => {
     const handleResize = () => {
@@ -34,7 +40,7 @@ const AppLayout = ({ children }) => {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      <Sidebar isMobileOpen={isMobileMenuOpen} onClose={handleCloseMenu} />
+      <SidebarComponent isMobileOpen={isMobileMenuOpen} onClose={handleCloseMenu} />
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
         <Header
           onToggleMenu={handleToggleMenu}

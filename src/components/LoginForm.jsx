@@ -53,7 +53,9 @@ const LoginForm = () => {
           });
         } else {
           toast.success("Logged in successfully");
-          navigate("/");
+          const role = result.payload?.user?.role;
+          const roles = Array.isArray(role) ? role : role ? [role] : [];
+          navigate(roles.includes("admin") ? "/admin" : "/");
         }
       } else {
         const message =
