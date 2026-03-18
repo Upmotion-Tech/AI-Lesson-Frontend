@@ -60,6 +60,11 @@ const Header = ({ onToggleMenu, isMobileMenuOpen }) => {
       <div className="flex h-20 items-center justify-between px-6 sm:px-10">
         <div className="flex items-center gap-6">
           {renderMenuToggle()}
+          <div className="hidden md:block">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              Lesson Orbit
+            </p>
+          </div>
           {canGoBack && (
             <IconButton
               onClick={() => navigate(-1)}
@@ -87,7 +92,7 @@ const Header = ({ onToggleMenu, isMobileMenuOpen }) => {
              </IconButton>
           </div> */}
 
-          <div className="h-8 w-px bg-slate-100" />
+          {user && <div className="h-8 w-px bg-slate-100" />}
 
           <div className="flex items-center gap-4">
             {user && (
@@ -154,6 +159,19 @@ const Header = ({ onToggleMenu, isMobileMenuOpen }) => {
                     </button>
                   </div>
                 )}
+              </div>
+            )}
+            {!user && (
+              <div className="flex items-center gap-3">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-black text-slate-900 leading-none">Account</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+                    Not Loaded
+                  </p>
+                </div>
+                <div className="h-11 w-11 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 font-black text-sm border border-slate-200">
+                  <User className="h-5 w-5" />
+                </div>
               </div>
             )}
           </div>

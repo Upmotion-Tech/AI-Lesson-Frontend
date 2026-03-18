@@ -3,6 +3,7 @@ import authReducer from "./authSlice.js";
 import curriculumReducer from "./curriculumSlice.js";
 import studentDataReducer from "./studentDataSlice.js";
 import lessonReducer from "./lessonSlice.js";
+import adminReducer from "./adminSlice.js";
 
 const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
     curriculum: curriculumReducer,
     studentData: studentDataReducer,
     lessons: lessonReducer,
+    admin: adminReducer,
   },
 });
 

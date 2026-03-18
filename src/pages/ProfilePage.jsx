@@ -32,6 +32,12 @@ const ProfilePage = () => {
   const roleLabel = Array.isArray(user?.role)
     ? user.role.join(", ")
     : user?.role || "teacher";
+  const normalizedRoles = Array.isArray(user?.role)
+    ? user.role
+    : user?.role
+    ? [user.role]
+    : [];
+  const isAdmin = normalizedRoles.includes("admin");
   const avatarUrl = getUserAvatarUrl(user?.profileImage);
 
   return (
@@ -75,23 +81,25 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Curricula</p>
-            <p className="text-3xl font-black text-slate-900 mt-2">{curricula.length}</p>
-            <BookOpen className="h-5 w-5 text-indigo-600 mt-3" />
-          </Card>
-          <Card>
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Students</p>
-            <p className="text-3xl font-black text-slate-900 mt-2">{totalStudents}</p>
-            <Users className="h-5 w-5 text-emerald-600 mt-3" />
-          </Card>
-          <Card>
-            <p className="text-xs font-black uppercase tracking-widest text-slate-500">Lesson Plans</p>
-            <p className="text-3xl font-black text-slate-900 mt-2">{lessons.length}</p>
-            <FileText className="h-5 w-5 text-rose-600 mt-3" />
-          </Card>
-        </div>
+        {!isAdmin && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <p className="text-xs font-black uppercase tracking-widest text-slate-500">Curricula</p>
+              <p className="text-3xl font-black text-slate-900 mt-2">{curricula.length}</p>
+              <BookOpen className="h-5 w-5 text-indigo-600 mt-3" />
+            </Card>
+            <Card>
+              <p className="text-xs font-black uppercase tracking-widest text-slate-500">Students</p>
+              <p className="text-3xl font-black text-slate-900 mt-2">{totalStudents}</p>
+              <Users className="h-5 w-5 text-emerald-600 mt-3" />
+            </Card>
+            <Card>
+              <p className="text-xs font-black uppercase tracking-widest text-slate-500">Lesson Plans</p>
+              <p className="text-3xl font-black text-slate-900 mt-2">{lessons.length}</p>
+              <FileText className="h-5 w-5 text-rose-600 mt-3" />
+            </Card>
+          </div>
+        )}
 
         <Card className="rounded-[1.5rem]">
           <h2 className="text-xl font-black text-slate-900 mb-6">Profile Details</h2>

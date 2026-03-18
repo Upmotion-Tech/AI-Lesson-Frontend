@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useAppSelector } from "../../hooks/useAppSelector.js";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -14,12 +15,14 @@ import {
   Library,
   UserCircle2,
   Settings,
-  Mail
+  Mail,
+  Shield
 } from "lucide-react";
 import AiLessonLogo from "../../assets/Ai-lesson-logo.png";
 
 const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
   const location = useLocation();
+  const userRole = useAppSelector((state) => state.auth.user?.role);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem("sidebarCollapsed");
     return saved ? JSON.parse(saved) : false;
@@ -39,6 +42,18 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
     { path: "/settings", label: "Settings", icon: Settings, color: "text-slate-600", bg: "bg-slate-100" },
     { path: "/legal", label: "Legal Docs", icon: FileText, color: "text-slate-500", bg: "bg-slate-100" },
   ];
+
+  const normalizedRoles = Array.isArray(userRole) ? userRole : userRole ? [userRole] : [];
+  const isAdmin = normalizedRoles.includes("admin");
+  if (isAdmin) {
+    navItems.push({
+      path: "/admin",
+      label: "Admin",
+      icon: Shield,
+      color: "text-fuchsia-600",
+      bg: "bg-fuchsia-50",
+    });
+  }
 
   const toggleCollapse = () => {
     setIsCollapsed((prev) => !prev);
