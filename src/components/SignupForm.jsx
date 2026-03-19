@@ -148,8 +148,13 @@ const SignupForm = () => {
         )}
       </div>
 
+      <div className="flex items-center gap-2.5 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span><strong>30-day free trial</strong> included — no credit card required to start.</span>
+      </div>
+
       <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? "Creating account..." : "Sign Up"}
+        {isLoading ? "Creating account..." : "Start Free Trial"}
       </Button>
       <div className="text-center text-sm text-muted-foreground mt-4">
         Already have an account?{" "}

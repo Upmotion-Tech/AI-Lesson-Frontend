@@ -9,14 +9,20 @@ import Badge from "../../components/common/Badge.jsx";
 import DataTable from "../../components/common/DataTable.jsx";
 import PageTransition from "../../components/common/PageTransition.jsx";
 import { fetchAdminStats, fetchAllUsersAdmin, updateUserByAdmin } from "../../store/adminThunks.js";
+import apiClient from "../../utils/apiClient.js";
 
 const AdminSubscriptionsPage = () => {
   const dispatch = useAppDispatch();
   const { users } = useAppSelector((state) => state.admin);
   const [editing, setEditing] = useState({});
+  const [activePlanName, setActivePlanName] = useState(null);
 
   useEffect(() => {
     dispatch(fetchAllUsersAdmin());
+    apiClient.get("/packages/admin/all").then((res) => {
+      const first = res.data.plans.find((p) => p.isActive);
+      if (first) setActivePlanName(first.name);
+    }).catch(() => {});
   }, [dispatch]);
 
   const setField = useCallback((userId, key, value) => {
@@ -39,8 +45,8 @@ const AdminSubscriptionsPage = () => {
           updateUserByAdmin({
             userId: user._id,
             subscription: {
-              status: patch.status ?? user.subscription?.status ?? "free",
-              planName: patch.planName ?? user.subscription?.planName ?? "free",
+              status: patch.status ?? user.subscription?.status ?? "trial",
+              planName: patch.status === "active" ? activePlanName : null,
             },
           })
         ).unwrap();
@@ -54,7 +60,7 @@ const AdminSubscriptionsPage = () => {
   );
 
   const statusOptions = useMemo(
-    () => ["free", "trial", "active", "past_due", "canceled"],
+    () => ["trial", "active", "canceled"],
     []
   );
 
@@ -76,7 +82,7 @@ const AdminSubscriptionsPage = () => {
         header: "Status",
         searchKey: [(u) => u?.subscription?.status],
         render: (user) => {
-          const value = editing[user._id]?.status ?? user.subscription?.status ?? "free";
+          const value = editing[user._id]?.status ?? user.subscription?.status ?? "trial";
           return (
             <div className="flex items-center gap-3">
               <select
@@ -94,22 +100,6 @@ const AdminSubscriptionsPage = () => {
             </div>
           );
         },
-      },
-      {
-        key: "plan",
-        header: "Plan",
-        searchKey: [(u) => u?.subscription?.planName],
-        render: (user) => (
-          <input
-            className="w-full text-sm font-semibold rounded-lg border border-border bg-card px-3 py-2"
-            value={
-              editing[user._id]?.planName ??
-              user.subscription?.planName ??
-              "free"
-            }
-            onChange={(event) => setField(user._id, "planName", event.target.value)}
-          />
-        ),
       },
       {
         key: "save",

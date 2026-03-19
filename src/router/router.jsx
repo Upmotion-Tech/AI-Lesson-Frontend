@@ -25,10 +25,15 @@ import AdminUsersPage from "../pages/admin/AdminUsersPage.jsx";
 import AdminSubscriptionsPage from "../pages/admin/AdminSubscriptionsPage.jsx";
 import AdminModerationPage from "../pages/admin/AdminModerationPage.jsx";
 import AdminContentPage from "../pages/admin/AdminContentPage.jsx";
+import AdminPackagesPage from "../pages/admin/AdminPackagesPage.jsx";
 import AppLayout from "../components/layout/AppLayout.jsx";
 import RequireAuth from "./RequireAuth.jsx";
 import RequireGuest from "./RequireGuest.jsx";
 import RequireRole from "./RequireRole.jsx";
+import UpgradePage from "../pages/UpgradePage.jsx";
+import BillingPage from "../pages/BillingPage.jsx";
+import PaymentSuccessPage from "../pages/PaymentSuccessPage.jsx";
+import PaymentCancelPage from "../pages/PaymentCancelPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -257,6 +262,54 @@ const router = createBrowserRouter([
             <AdminContentPage />
           </AppLayout>
         </RequireRole>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/admin/packages",
+    element: (
+      <RequireAuth>
+        <RequireRole roles={["admin"]}>
+          <AppLayout>
+            <AdminPackagesPage />
+          </AppLayout>
+        </RequireRole>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/billing",
+    element: (
+      <RequireAuth>
+        <RequireRole roles={["teacher"]} fallbackPath="/admin">
+          <AppLayout>
+            <BillingPage />
+          </AppLayout>
+        </RequireRole>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/upgrade",
+    element: (
+      <RequireAuth>
+        <UpgradePage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/payment/success",
+    element: (
+      <RequireAuth>
+        <PaymentSuccessPage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/payment/cancel",
+    element: (
+      <RequireAuth>
+        <PaymentCancelPage />
       </RequireAuth>
     ),
   },

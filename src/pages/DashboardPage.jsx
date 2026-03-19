@@ -32,6 +32,7 @@ import {
   LayoutGrid,
   Calendar
 } from "lucide-react";
+import TrialBanner from "../components/TrialBanner.jsx";
 
 const DashboardPage = () => {
   const dispatch = useAppDispatch();
@@ -118,6 +119,7 @@ const DashboardPage = () => {
   return (
     <PageTransition>
       <div className="space-y-12 pb-20">
+        <TrialBanner />
         {/* State-of-the-art Hero Section */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}

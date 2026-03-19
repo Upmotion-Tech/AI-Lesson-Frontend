@@ -16,7 +16,8 @@ import {
   UserCircle2,
   Settings,
   Mail,
-  Shield
+  Shield,
+  CreditCard,
 } from "lucide-react";
 import AiLessonLogo from "../../assets/Ai-lesson-logo.png";
 
@@ -38,6 +39,7 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
     { path: "/upload-students", label: "Upload Students", icon: Users, color: "text-emerald-600", bg: "bg-emerald-50" },
     { path: "/generate-lesson", label: "Generate Lesson", icon: Sparkles, color: "text-violet-600", bg: "bg-violet-50" },
     { path: "/lessons", label: "My Lesson Plans", icon: FileText, color: "text-rose-600", bg: "bg-rose-50" },
+    { path: "/billing", label: "Manage Billing", icon: CreditCard, color: "text-emerald-600", bg: "bg-emerald-50" },
     { path: "/profile", label: "Profile", icon: UserCircle2, color: "text-sky-600", bg: "bg-sky-50" },
     { path: "/settings", label: "Settings", icon: Settings, color: "text-slate-600", bg: "bg-slate-100" },
     { path: "/legal", label: "Legal Docs", icon: FileText, color: "text-slate-500", bg: "bg-slate-100" },

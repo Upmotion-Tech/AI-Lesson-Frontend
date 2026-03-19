@@ -29,12 +29,22 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear auth on 401
       localStorage.removeItem("token");
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
     }
+
+    if (error.response?.status === 403) {
+      const code = error.response?.data?.code;
+      if (
+        (code === "TRIAL_EXPIRED" || code === "SUBSCRIPTION_REQUIRED") &&
+        window.location.pathname !== "/upgrade"
+      ) {
+        window.location.href = `/upgrade?reason=${code}`;
+      }
+    }
+
     return Promise.reject(error);
   }
 );

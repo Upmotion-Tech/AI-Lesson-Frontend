@@ -8,6 +8,7 @@ import {
   ShieldAlert,
   LayoutDashboard,
   FileText,
+  Package,
 } from "lucide-react";
 import AiLessonLogo from "../../assets/Ai-lesson-logo.png";
 
@@ -19,6 +20,12 @@ const navItems = [
     label: "Subscriptions",
     icon: CreditCard,
     color: "text-amber-600",
+  },
+  {
+    path: "/admin/packages",
+    label: "Packages",
+    icon: Package,
+    color: "text-violet-600",
   },
   {
     path: "/admin/content",
