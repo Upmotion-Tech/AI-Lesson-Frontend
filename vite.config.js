@@ -4,5 +4,14 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    {
+      name: "force-close",
+      closeBundle() {
+        process.exit(0);
+      },
+    },
+  ],
 });
