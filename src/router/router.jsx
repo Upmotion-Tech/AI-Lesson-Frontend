@@ -22,6 +22,7 @@ import ProfilePage from "../pages/ProfilePage.jsx";
 import SettingsPage from "../pages/SettingsPage.jsx";
 import AdminOverviewPage from "../pages/admin/AdminOverviewPage.jsx";
 import AdminUsersPage from "../pages/admin/AdminUsersPage.jsx";
+import AdminAdminsPage from "../pages/admin/AdminAdminsPage.jsx";
 import AdminSubscriptionsPage from "../pages/admin/AdminSubscriptionsPage.jsx";
 import AdminModerationPage from "../pages/admin/AdminModerationPage.jsx";
 import AdminContentPage from "../pages/admin/AdminContentPage.jsx";
@@ -209,7 +210,7 @@ const router = createBrowserRouter([
     path: "/admin",
     element: (
       <RequireAuth>
-        <RequireRole roles={["admin"]}>
+        <RequireRole roles={["admin", "super_admin"]}>
           <AppLayout>
             <AdminOverviewPage />
           </AppLayout>
@@ -221,9 +222,21 @@ const router = createBrowserRouter([
     path: "/admin/users",
     element: (
       <RequireAuth>
-        <RequireRole roles={["admin"]}>
+        <RequireRole roles={["admin", "super_admin"]}>
           <AppLayout>
             <AdminUsersPage />
+          </AppLayout>
+        </RequireRole>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/admin/admins",
+    element: (
+      <RequireAuth>
+        <RequireRole roles={["admin", "super_admin"]}>
+          <AppLayout>
+            <AdminAdminsPage />
           </AppLayout>
         </RequireRole>
       </RequireAuth>
@@ -233,7 +246,7 @@ const router = createBrowserRouter([
     path: "/admin/subscriptions",
     element: (
       <RequireAuth>
-        <RequireRole roles={["admin"]}>
+        <RequireRole roles={["admin", "super_admin"]}>
           <AppLayout>
             <AdminSubscriptionsPage />
           </AppLayout>
@@ -245,7 +258,7 @@ const router = createBrowserRouter([
     path: "/admin/moderation",
     element: (
       <RequireAuth>
-        <RequireRole roles={["admin"]}>
+        <RequireRole roles={["admin", "super_admin"]}>
           <AppLayout>
             <AdminModerationPage />
           </AppLayout>
@@ -257,7 +270,7 @@ const router = createBrowserRouter([
     path: "/admin/content",
     element: (
       <RequireAuth>
-        <RequireRole roles={["admin"]}>
+        <RequireRole roles={["admin", "super_admin"]}>
           <AppLayout>
             <AdminContentPage />
           </AppLayout>
@@ -269,7 +282,7 @@ const router = createBrowserRouter([
     path: "/admin/packages",
     element: (
       <RequireAuth>
-        <RequireRole roles={["admin"]}>
+        <RequireRole roles={["admin", "super_admin"]}>
           <AppLayout>
             <AdminPackagesPage />
           </AppLayout>

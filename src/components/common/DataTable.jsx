@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
 import Table from "./Table.jsx";
 import Input from "./Input.jsx";
@@ -15,8 +16,10 @@ const toArray = (value) => {
 };
 
 const ActionMenu = ({ actions = [], row }) => {
+  const triggerRef = useRef(null);
   const menuRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState(null);
 
   const visibleActions = useMemo(() => {
     return actions
@@ -30,8 +33,13 @@ const ActionMenu = ({ actions = [], row }) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!open) return;
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+
+      const clickedTrigger = triggerRef.current?.contains(event.target);
+      const clickedMenu = menuRef.current?.contains(event.target);
+
+      if (!clickedTrigger && !clickedMenu) {
         setOpen(false);
+        setMenuPos(null);
       }
     };
 
@@ -39,47 +47,103 @@ const ActionMenu = ({ actions = [], row }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
+  const updatePosition = useCallback(() => {
+    if (!open) return;
+    if (!triggerRef.current) return;
+
+    const rect = triggerRef.current.getBoundingClientRect();
+    const measured = menuRef.current?.getBoundingClientRect();
+    const menuWidth = measured?.width ?? 208;
+    const menuHeight = measured?.height ?? 240;
+    const gap = 8;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const openUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+
+    const left = Math.min(Math.max(rect.right - menuWidth, 8), viewportWidth - menuWidth - 8);
+    const maxTop = viewportHeight - menuHeight - 8;
+    const rawTop = openUp ? rect.top - menuHeight - gap : rect.bottom + gap;
+    const top = Math.min(Math.max(rawTop, 8), Math.max(maxTop, 8));
+
+    setMenuPos({ top, left });
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const raf = requestAnimationFrame(() => updatePosition());
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open, updatePosition]);
+
   if (!visibleActions.length) return null;
 
   return (
-    <div ref={menuRef} className="relative inline-flex">
+    <div ref={triggerRef} className="relative inline-flex">
       <IconButton
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() =>
+          setOpen((prev) => {
+            const next = !prev;
+            if (!next) setMenuPos(null);
+            return next;
+          })
+        }
         className="border border-border/70 bg-card hover:bg-muted shadow-sm"
       >
         <MoreVertical className="h-4 w-4" />
       </IconButton>
-      {open && (
-        <div
-          role="menu"
-          className="absolute right-0 top-full mt-2 w-52 rounded-2xl border border-border bg-card shadow-xl shadow-black/10 z-50 overflow-hidden"
-        >
-          {visibleActions.map((action) => (
-            <button
-              key={action.key}
-              type="button"
-              role="menuitem"
-              disabled={action.disabled}
-              onClick={() => {
-                if (action.disabled) return;
-                action.onClick(row);
-                setOpen(false);
+      {open
+        ? createPortal(
+            <div
+              ref={menuRef}
+              role="menu"
+              style={{
+                position: "fixed",
+                top: menuPos?.top ?? -9999,
+                left: menuPos?.left ?? -9999,
+                visibility: menuPos ? "visible" : "hidden",
               }}
-              className={`w-full px-3 py-2 text-left text-sm font-semibold flex items-center gap-2 transition-colors ${
-                action.destructive
-                  ? "text-danger hover:bg-danger/10"
-                  : "text-foreground hover:bg-muted"
-              } ${action.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+              className="w-52 max-h-60 overflow-auto rounded-2xl border border-border bg-card shadow-xl shadow-black/10 z-50"
             >
-              {action.icon ? <span className="shrink-0">{action.icon}</span> : null}
-              <span className="flex-1">{action.label}</span>
-            </button>
-          ))}
-        </div>
-      )}
+              {visibleActions.map((action) => (
+                <button
+                  key={action.key}
+                  type="button"
+                  role="menuitem"
+                  disabled={action.disabled}
+                  onClick={() => {
+                    if (action.disabled) return;
+                    action.onClick(row);
+                    setOpen(false);
+                    setMenuPos(null);
+                  }}
+                  className={`w-full px-3 py-2 text-left text-sm font-semibold flex items-center gap-2 transition-colors ${
+                    action.destructive
+                      ? "text-danger hover:bg-danger/10"
+                      : "text-foreground hover:bg-muted"
+                  } ${action.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {action.icon ? <span className="shrink-0">{action.icon}</span> : null}
+                  <span className="flex-1">{action.label}</span>
+                </button>
+              ))}
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 };
