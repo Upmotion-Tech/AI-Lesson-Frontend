@@ -5,6 +5,10 @@ import {
   updateUserByAdmin,
   changeUserRoleAdmin,
   setUserAccessAdmin,
+  createAdmin,
+  updateAdmin,
+  deleteAdmin,
+  updateAdminPermissions,
 } from "./adminThunks.js";
 
 const initialState = {
@@ -107,6 +111,55 @@ const adminSlice = createSlice({
         upsertUser(state, action.payload);
       })
       .addCase(setUserAccessAdmin.rejected, (state, action) => {
+        state.actionStatus = "failed";
+        state.error = action.payload || action.error?.message;
+      })
+      // Admin management thunks
+      .addCase(createAdmin.pending, (state) => {
+        state.actionStatus = "loading";
+        state.error = null;
+      })
+      .addCase(createAdmin.fulfilled, (state, action) => {
+        state.actionStatus = "succeeded";
+        upsertUser(state, action.payload.user);
+      })
+      .addCase(createAdmin.rejected, (state, action) => {
+        state.actionStatus = "failed";
+        state.error = action.payload || action.error?.message;
+      })
+      .addCase(updateAdmin.pending, (state) => {
+        state.actionStatus = "loading";
+        state.error = null;
+      })
+      .addCase(updateAdmin.fulfilled, (state, action) => {
+        state.actionStatus = "succeeded";
+        upsertUser(state, action.payload);
+      })
+      .addCase(updateAdmin.rejected, (state, action) => {
+        state.actionStatus = "failed";
+        state.error = action.payload || action.error?.message;
+      })
+      .addCase(deleteAdmin.pending, (state) => {
+        state.actionStatus = "loading";
+        state.error = null;
+      })
+      .addCase(deleteAdmin.fulfilled, (state, action) => {
+        state.actionStatus = "succeeded";
+        upsertUser(state, action.payload);
+      })
+      .addCase(deleteAdmin.rejected, (state, action) => {
+        state.actionStatus = "failed";
+        state.error = action.payload || action.error?.message;
+      })
+      .addCase(updateAdminPermissions.pending, (state) => {
+        state.actionStatus = "loading";
+        state.error = null;
+      })
+      .addCase(updateAdminPermissions.fulfilled, (state, action) => {
+        state.actionStatus = "succeeded";
+        upsertUser(state, action.payload);
+      })
+      .addCase(updateAdminPermissions.rejected, (state, action) => {
         state.actionStatus = "failed";
         state.error = action.payload || action.error?.message;
       });

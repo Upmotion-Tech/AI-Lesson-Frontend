@@ -9,39 +9,62 @@ import {
   LayoutDashboard,
   FileText,
   Package,
+  Crown,
+  User,
+  Settings,
 } from "lucide-react";
 import AiLessonLogo from "../../assets/Ai-lesson-logo.png";
-
-const navItems = [
-  { path: "/admin", label: "Overview", icon: LayoutDashboard, color: "text-indigo-600" },
-  { path: "/admin/users", label: "Users", icon: Users, color: "text-emerald-600" },
-  {
-    path: "/admin/subscriptions",
-    label: "Subscriptions",
-    icon: CreditCard,
-    color: "text-amber-600",
-  },
-  {
-    path: "/admin/packages",
-    label: "Packages",
-    icon: Package,
-    color: "text-violet-600",
-  },
-  {
-    path: "/admin/content",
-    label: "Content",
-    icon: FileText,
-    color: "text-blue-500",
-  },
-  // {
-  //   path: "/admin/moderation",
-  //   label: "Moderation",
-  //   icon: ShieldAlert,
-  //   color: "text-rose-600",
-  // },
-];
+import { useAppSelector } from "../../hooks/useAppSelector.js";
+import { usePermissions } from "../../hooks/usePermissions.js";
+import { getRoleLabel } from "../../utils/roleHierarchy.js";
 
 const AdminSidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
+  const { userRoles, isSuperAdmin } = usePermissions();
+  const { user } = useAppSelector((state) => state.auth);
+
+  // Get user permissions (default to false if not set)
+  const permissions = user?.permissions || { content: false, packages: false };
+
+  // Build nav items based on role and permissions
+  const navItems = [
+    { path: "/admin", label: "Overview", icon: LayoutDashboard, color: "text-indigo-600" },
+    { path: "/admin/users", label: "Users", icon: Users, color: "text-emerald-600" },
+    { path: "/profile", label: "Profile", icon: User, color: "text-blue-600" },
+    { path: "/settings", label: "Settings", icon: Settings, color: "text-slate-600" },
+  ];
+  
+  if (isSuperAdmin) {
+    navItems.splice(2, 0, { path: "/admin/admins", label: "Admins", icon: Crown, color: "text-purple-600" });
+  }
+
+  // Show Subscriptions and Packages only if user has packages permission or is super_admin
+  if (isSuperAdmin || permissions.packages) {
+    navItems.push(
+      {
+        path: "/admin/subscriptions",
+        label: "Subscriptions",
+        icon: CreditCard,
+        color: "text-amber-600",
+      },
+      {
+        path: "/admin/packages",
+        label: "Packages",
+        icon: Package,
+        color: "text-violet-600",
+      }
+    );
+  }
+
+  // Show Content only if user has content permission or is super_admin
+  if (isSuperAdmin || permissions.content) {
+    navItems.push({
+      path: "/admin/content",
+      label: "Content",
+      icon: FileText,
+      color: "text-blue-500",
+    });
+  }
+
   return (
     <>
       <aside
@@ -64,6 +87,9 @@ const AdminSidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
               </span>
               <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600">
                 Admin Portal
+              </span>
+              <span className={`text-[10px] font-semibold uppercase tracking-widest ${isSuperAdmin ? "text-red-600" : "text-slate-500"}`}>
+                {getRoleLabel(userRoles)}
               </span>
             </div>
           </div>
@@ -102,19 +128,30 @@ const AdminSidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-50">
-          <div className="p-4 rounded-2xl bg-indigo-600 text-white">
+        {isSuperAdmin && (
+            <div className="p-4 rounded-2xl bg-red-600 text-white mb-3">
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldAlert className="h-4 w-4" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-red-200">
+                  Super Admin
+                </p>
+              </div>
+              <p className="text-xs font-semibold leading-relaxed">
+                Highest privilege. Full system control.
+              </p>
+            </div>
+          )}
+          <div className={`p-4 rounded-2xl ${isSuperAdmin ? "bg-slate-100" : "bg-indigo-600 text-white"}`}>
             <div className="flex items-center gap-2 mb-2">
-              <Shield className="h-4 w-4" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200">
+              <Shield className={`h-4 w-4 ${isSuperAdmin ? "text-slate-600" : ""}`} />
+              <p className={`text-[10px] font-black uppercase tracking-widest ${isSuperAdmin ? "text-slate-500" : "text-indigo-200"}`}>
                 Security
               </p>
             </div>
-            <p className="text-xs font-semibold leading-relaxed">
+            <p className={`text-xs font-semibold leading-relaxed ${isSuperAdmin ? "text-slate-700" : ""}`}>
               Admin controls are server-validated with role checks.
             </p>
           </div>
-        </div>
       </aside>
 
       <AnimatePresence>

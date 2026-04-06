@@ -8,7 +8,7 @@ const AppLayout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const userRole = useAppSelector((state) => state.auth.user?.role);
   const normalizedRoles = Array.isArray(userRole) ? userRole : userRole ? [userRole] : [];
-  const isAdmin = normalizedRoles.includes("admin");
+  const isAdmin = normalizedRoles.includes("admin") || normalizedRoles.includes("super_admin");
   const SidebarComponent = isAdmin ? AdminSidebar : Sidebar;
 
   useEffect(() => {

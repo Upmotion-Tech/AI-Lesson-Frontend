@@ -11,6 +11,7 @@ const Input = ({
   required = false,
   className = "",
   showPasswordToggle = false,
+  suffix,
   ...props
 }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -39,10 +40,10 @@ const Input = ({
           required={required}
           className={`w-full px-3 py-2 bg-card border border-border rounded-lg text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors ${
             error ? "border-danger focus:ring-danger" : ""
-          } ${showPasswordToggle ? "pr-10" : ""} ${className}`}
+          } ${showPasswordToggle || suffix ? "pr-10" : ""} ${className}`}
           {...props}
         />
-        {showPasswordToggle && type === "password" && (
+        {showPasswordToggle && type === "password" && !suffix && (
           <button
             type="button"
             onClick={() => setIsPasswordVisible((prev) => !prev)}
@@ -51,6 +52,11 @@ const Input = ({
           >
             {isPasswordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
+        )}
+        {suffix && (
+          <div className="absolute inset-y-0 right-3 flex items-center">
+            {suffix}
+          </div>
         )}
       </div>
       {error && <p className="mt-1.5 text-sm text-danger">{error}</p>}
