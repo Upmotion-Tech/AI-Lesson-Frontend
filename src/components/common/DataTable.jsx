@@ -170,6 +170,7 @@ const DataTable = ({
   className = "",
   serverPagination,
   onFetchParamsChange,
+  isRowSelectable,
 }) => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -281,6 +282,14 @@ const DataTable = ({
     return pageData.map(rowIdFor).filter(Boolean);
   }, [pageData, enableSelection, rowIdFor]);
 
+  const selectableVisibleIds = useMemo(() => {
+    if (!enableSelection) return [];
+    return pageData
+      .filter((row) => (isRowSelectable ? isRowSelectable(row) : true))
+      .map(rowIdFor)
+      .filter(Boolean);
+  }, [pageData, enableSelection, rowIdFor, isRowSelectable]);
+
   const allVisibleSelected = useMemo(() => {
     if (!enableSelection || !selection) return false;
     if (!allVisibleIds.length) return false;
@@ -324,9 +333,9 @@ const DataTable = ({
 
     const next = new Set(selection);
     if (allVisibleSelected) {
-      allVisibleIds.forEach((id) => next.delete(id));
+      selectableVisibleIds.forEach((id) => next.delete(id));
     } else {
-      allVisibleIds.forEach((id) => next.add(id));
+      selectableVisibleIds.forEach((id) => next.add(id));
     }
     setSelected(next);
   };
@@ -466,6 +475,8 @@ const DataTable = ({
                 const id = rowIdFor(row);
                 const isSelected = enableSelection && selection ? selection.has(id) : false;
 
+                const rowSelectable = isRowSelectable ? isRowSelectable(row) : true;
+
                 return (
                   <Table.Row key={id ?? JSON.stringify(row)} className="hover:bg-muted/30">
                     {enableSelection && (
@@ -474,7 +485,8 @@ const DataTable = ({
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleRow(row)}
-                          className="h-4 w-4 accent-primary"
+                          disabled={!rowSelectable}
+                          className="h-4 w-4 accent-primary disabled:opacity-40 disabled:cursor-not-allowed"
                           aria-label="Select row"
                         />
                       </Table.Cell>
