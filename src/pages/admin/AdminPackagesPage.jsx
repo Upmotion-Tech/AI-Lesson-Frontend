@@ -107,13 +107,15 @@ const AdminPackagesPage = () => {
             Manage the plans available to users. Changes take effect immediately.
           </p>
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
-        >
-          <Plus size={16} />
-          Add Plan
-        </button>
+        {plans.length === 0 && (
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+          >
+            <Plus size={16} />
+            Add Plan
+          </button>
+        )}
       </div>
 
       {loading ? (

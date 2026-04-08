@@ -3,9 +3,10 @@ import { useAppSelector } from "../../hooks/useAppSelector.js";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { clearAuth } from "../../store/authSlice.js";
-import { ArrowLeft, ChevronDown, LogOut, Menu, Settings, User, X } from "lucide-react";
+import { ArrowLeft, ChevronDown, CreditCard, LogOut, Menu, Settings, User, X } from "lucide-react";
 import IconButton from "../common/IconButton.jsx";
 import { getUserAvatarUrl } from "../../utils/userAvatar.js";
+import { isAdmin } from "../../utils/roleHierarchy.js";
 
 const Header = ({ onToggleMenu, isMobileMenuOpen }) => {
   const dispatch = useAppDispatch();
@@ -135,6 +136,19 @@ const Header = ({ onToggleMenu, isMobileMenuOpen }) => {
                       <User className="h-4 w-4" />
                       Profile
                     </button>
+                    {!isAdmin(user?.role) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          navigate("/billing");
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        Manage Billing
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => {

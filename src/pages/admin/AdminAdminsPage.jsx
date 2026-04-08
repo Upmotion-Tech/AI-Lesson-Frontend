@@ -481,10 +481,11 @@ const AdminAdminsPage = () => {
             {isSuperAdmin && (
               <Button
                 onClick={openCreateModal}
-                className="bg-white text-slate-900 hover:bg-slate-100"
+                className="bg-white text-slate-900 hover:bg-slate-100 cursor-pointer"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Admin
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" /> <span>Create Admin</span>
+                </div>
               </Button>
             )}
           </div>
@@ -508,6 +509,10 @@ const AdminAdminsPage = () => {
             searchPlaceholder="Search by name or email"
             serverPagination={usersPagination}
             onFetchParamsChange={handleFetchParamsChange}
+            isRowSelectable={(admin) => {
+              const role = Array.isArray(admin.role) ? admin.role : [admin.role];
+              return !role.includes("super_admin");
+            }}
           />
         </Card>
       </div>
