@@ -13,6 +13,19 @@ const StudentPreviewTable = ({ students }) => {
     );
   }
 
+  const getInitials = (name) => {
+    if (!name || typeof name !== "string") return "S";
+    const parts = name
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (parts.length === 0) return "S";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+
+    return `${parts[0][0] || ""}${parts[parts.length - 1][0] || ""}`.toUpperCase();
+  };
+
   const getTierVariant = (tier) => {
     switch (tier) {
       case 1:
@@ -44,7 +57,7 @@ const StudentPreviewTable = ({ students }) => {
               {students.map((student, idx) => (
                 <Table.Row key={idx} className="hover:bg-muted/50">
                   <Table.Cell className="font-medium text-sm sm:text-base">
-                    {student.name}
+                    {getInitials(student.name)}
                   </Table.Cell>
                   <Table.Cell className="text-sm sm:text-base">
                     {student.score ?? "-"}
