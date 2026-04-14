@@ -57,13 +57,13 @@ const AdminUsersPage = () => {
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchAllUsersAdmin({ page: 1, limit: 10, role: "teacher" }));
+    dispatch(fetchAllUsersAdmin({ page: 1, limit: 10 }));
     dispatch(fetchAdminStats());
   }, [dispatch]);
 
   const handleFetchParamsChange = useCallback(
     (params) => {
-      dispatch(fetchAllUsersAdmin({ ...params, role: "teacher" }));
+      dispatch(fetchAllUsersAdmin(params));
     },
     [dispatch]
   );
@@ -208,8 +208,8 @@ const AdminUsersPage = () => {
                 <p className="font-semibold text-foreground truncate">{user.name}</p>
                 <p className="text-[13px] text-muted-foreground font-medium truncate">{user.email}</p>
                 <div className="inline-flex items-center gap-1 mt-1 text-xs font-black uppercase tracking-wider">
-                  <GraduationCap className="h-3.5 w-3.5 text-slate-400" />
-                  <span className="text-slate-500">{roleLabelFn(role)}</span>
+                  {isSuper ? <ShieldAlert className="h-3.5 w-3.5" /> : isAdminRole ? <Crown className="h-3.5 w-3.5" /> : <GraduationCap className="h-3.5 w-3.5 text-slate-400" />}
+                  <span className={isSuper ? "text-red-600" : isAdminRole ? "text-indigo-600" : "text-slate-500"}>{roleLabelFn(role)}</span>
                 </div>
               </div>
             </div>
@@ -278,6 +278,7 @@ const AdminUsersPage = () => {
 
   const filters = useMemo(
     () => [
+      { id: "role", label: "Role", options: roleOptions, getValue: (user) => (Array.isArray(user.role) ? user.role[0] : user.role || "teacher") },
       { id: "status", label: "Status", options: statusOptions, getValue: (user) => (user?.Deleted?.isDeleted ? "revoked" : user?.isDeactivated ? "suspended" : "active") },
       { id: "subscription", label: "Subscription", options: subscriptionOptions, getValue: (user) => user.subscription?.status || "free" },
     ],
@@ -355,7 +356,7 @@ const AdminUsersPage = () => {
             <Users className="h-8 w-8" />
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-300">Admin</p>
-              <h1 className="text-3xl md:text-4xl font-black tracking-tight">Teachers</h1>
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight">Users</h1>
             </div>
           </div>
         </div>
@@ -363,8 +364,8 @@ const AdminUsersPage = () => {
         <Card className="rounded-2xl border-0 ring-1 ring-border/50 shadow-md">
           <DataTable
             className="p-2"
-            title="Teacher List"
-            description="Manage your teachers seamlessly. Multi-select for bulk actions or search for specific staff members."
+            title="Overview"
+            description="Manage your users seamlessly. Multi-select for bulk actions or search for specific students and admins."
             data={users}
             loading={usersStatus === "loading"}
             columns={columns}

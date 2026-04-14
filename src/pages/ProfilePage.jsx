@@ -6,6 +6,7 @@ import Card from "../components/common/Card.jsx";
 import Button from "../components/common/Button.jsx";
 import PageTransition from "../components/common/PageTransition.jsx";
 import { getUserAvatarUrl } from "../utils/userAvatar.js";
+import { BillingPanel } from "./BillingPage.jsx";
 
 const formatDate = (value) => {
   if (!value) return "Not provided";
@@ -37,7 +38,8 @@ const ProfilePage = () => {
     : user?.role
     ? [user.role]
     : [];
-  const isAdmin = normalizedRoles.includes("admin");
+  const isAdminOrSuperAdmin = normalizedRoles.includes("admin") || normalizedRoles.includes("super_admin");
+  const isTeacher = normalizedRoles.includes("teacher");
   const avatarUrl = getUserAvatarUrl(user?.profileImage);
 
   return (
@@ -81,7 +83,7 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {!isAdmin && (
+        {!isAdminOrSuperAdmin && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <p className="text-xs font-black uppercase tracking-widest text-slate-500">Curricula</p>
@@ -134,6 +136,12 @@ const ProfilePage = () => {
             </div>
           </div>
         </Card>
+
+        {isTeacher && !isAdminOrSuperAdmin && (
+          <Card className="rounded-[1.5rem]">
+            <BillingPanel showHeader />
+          </Card>
+        )}
       </div>
     </PageTransition>
   );

@@ -10,61 +10,37 @@ import {
   FileText,
   Package,
   Crown,
-  User,
-  Settings,
 } from "lucide-react";
 import AiLessonLogo from "../../assets/Ai-lesson-logo.png";
-import { useAppSelector } from "../../hooks/useAppSelector.js";
 import { usePermissions } from "../../hooks/usePermissions.js";
 import { getRoleLabel } from "../../utils/roleHierarchy.js";
 
+const navItems = [
+  { path: "/admin", label: "Overview", icon: LayoutDashboard, color: "text-indigo-600" },
+  { path: "/admin/users", label: "Users", icon: Users, color: "text-emerald-600" },
+  { path: "/admin/admins", label: "Admins", icon: Crown, color: "text-purple-600" },
+  {
+    path: "/admin/subscriptions",
+    label: "Subscriptions",
+    icon: CreditCard,
+    color: "text-amber-600",
+  },
+  {
+    path: "/admin/packages",
+    label: "Packages",
+    icon: Package,
+    color: "text-violet-600",
+  },
+  {
+    path: "/admin/content",
+    label: "Content",
+    icon: FileText,
+    color: "text-blue-500",
+  },
+];
+
 const AdminSidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
   const { userRoles, isSuperAdmin } = usePermissions();
-  const { user } = useAppSelector((state) => state.auth);
-
-  // Get user permissions (default to false if not set)
-  const permissions = user?.permissions || { content: false, packages: false };
-
-  // Build nav items based on role and permissions
-  const navItems = [
-    { path: "/admin", label: "Overview", icon: LayoutDashboard, color: "text-indigo-600" },
-    { path: "/admin/users", label: "Users", icon: Users, color: "text-emerald-600" },
-    { path: "/profile", label: "Profile", icon: User, color: "text-blue-600" },
-    { path: "/settings", label: "Settings", icon: Settings, color: "text-slate-600" },
-  ];
-  
-  if (isSuperAdmin) {
-    navItems.splice(2, 0, { path: "/admin/admins", label: "Admins", icon: Crown, color: "text-purple-600" });
-  }
-
-  // Show Subscriptions and Packages only if user has packages permission or is super_admin
-  if (isSuperAdmin || permissions.packages) {
-    navItems.push(
-      {
-        path: "/admin/subscriptions",
-        label: "Subscriptions",
-        icon: CreditCard,
-        color: "text-amber-600",
-      },
-      {
-        path: "/admin/packages",
-        label: "Packages",
-        icon: Package,
-        color: "text-violet-600",
-      }
-    );
-  }
-
-  // Show Content only if user has content permission or is super_admin
-  if (isSuperAdmin || permissions.content) {
-    navItems.push({
-      path: "/admin/content",
-      label: "Content",
-      icon: FileText,
-      color: "text-blue-500",
-    });
-  }
-
   return (
     <>
       <aside
