@@ -41,8 +41,6 @@ export const isSuperAdmin = (userRoles) => {
 export const canManageUser = (userRoles, targetUserRoles) => {
   const userLevel = getHighestPrivilegeLevel(userRoles);
   const targetLevel = getHighestPrivilegeLevel(targetUserRoles);
-  
-  if (userLevel === 2) return true; // Super admin can manage anyone
   return userLevel > targetLevel; // Must have strictly higher privilege
 };
 

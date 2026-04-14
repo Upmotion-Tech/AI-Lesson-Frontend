@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import {
   Edit,
@@ -10,13 +9,6 @@ import {
   ShieldX,
   Crown,
   ShieldAlert,
-  Plus,
-  FileText,
-  Package,
-  Check,
-  X,
-  Loader2,
-  UserX,
 } from "lucide-react";
 import { useAppDispatch } from "../../hooks/useAppDispatch.js";
 import { useAppSelector } from "../../hooks/useAppSelector.js";
@@ -27,16 +19,11 @@ import Badge from "../../components/common/Badge.jsx";
 import PageTransition from "../../components/common/PageTransition.jsx";
 import DataTable from "../../components/common/DataTable.jsx";
 import Input from "../../components/common/Input.jsx";
-import Select from "../../components/common/Select.jsx";
 import {
   fetchAdminStats,
   fetchAllUsersAdmin,
   setUserAccessAdmin,
-  createAdmin,
-  updateAdmin,
-  deleteAdmin,
-  hardDeleteAdmin,
-  checkEmailAvailability,
+  updateUserByAdmin,
 } from "../../store/adminThunks.js";
 import { getUserAvatarUrl } from "../../utils/userAvatar.js";
 import {
@@ -52,214 +39,46 @@ const getInitials = (name) => {
 
 const AdminAdminsPage = () => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const { users, usersPagination, usersStatus } = useAppSelector((state) => state.admin);
   const { user: currentUser } = useAppSelector((state) => state.auth);
 
   const currentUserRoles = normalizeRoles(currentUser?.role);
-  const isSuperAdmin = currentUserRoles.includes("super_admin");
 
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [selectedAdminIds, setSelectedAdminIds] = useState([]);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Email check state
-  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
-  const [emailAvailability, setEmailAvailability] = useState(null); // null | "available" | "taken" | "invalid"
-
-  // Create form state
-  const [createForm, setCreateForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    role: "admin",
-    permissions: { content: false, packages: false },
-  });
-
-  // Edit form state
-  const [editForm, setEditForm] = useState({
-    name: "",
-    email: "",
-    role: "admin",
-    permissions: { content: false, packages: false },
-  });
+  const [editForm, setEditForm] = useState({ name: "", email: "", role: "admin" });
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   // Filter to only show admins and super_admins
   const admins = useMemo(
     () => users.filter((u) => {
-      const roles = Array.isArray(u.role) ? u.role : [u.role];
-      return roles.some(r => ["admin", "super_admin", "moderator"].includes(r));
+      const role = Array.isArray(u.role) ? u.role[0] : u.role;
+      return role === "admin" || role === "super_admin";
     }),
     [users]
   );
 
   useEffect(() => {
-    dispatch(fetchAllUsersAdmin({ page: 1, limit: 10, role: "admins" }));
+    dispatch(fetchAllUsersAdmin({ page: 1, limit: 10 }));
     dispatch(fetchAdminStats());
   }, [dispatch]);
 
   const handleFetchParamsChange = useCallback(
     (params) => {
-      dispatch(fetchAllUsersAdmin({ ...params, role: "admins" }));
+      dispatch(fetchAllUsersAdmin(params));
     },
     [dispatch]
   );
 
-  // Create modal handlers
-  const openCreateModal = useCallback(() => {
-    setCreateForm({
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      role: "admin",
-      permissions: { content: false, packages: false },
-    });
-    setEmailAvailability(null);
-    setIsCheckingEmail(false);
-    setIsCreateModalOpen(true);
-  }, []);
-
-  const closeCreateModal = useCallback(() => {
-    setIsCreateModalOpen(false);
-    setEmailAvailability(null);
-  }, []);
-
-  // Email availability check effect
-  useEffect(() => {
-    if (!isCreateModalOpen || !createForm.email) {
-      setEmailAvailability(null);
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(createForm.email)) {
-      setEmailAvailability("invalid");
-      return;
-    }
-
-    setIsCheckingEmail(true);
-    const timeoutId = setTimeout(async () => {
-      try {
-        const isAvailable = await dispatch(checkEmailAvailability(createForm.email)).unwrap();
-        setEmailAvailability(isAvailable ? "available" : "taken");
-      } catch (error) {
-        console.error("Failed to check email:", error);
-      } finally {
-        setIsCheckingEmail(false);
-      }
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [createForm.email, isCreateModalOpen, dispatch]);
-
-  const handleCreateAdmin = async (event) => {
-    event.preventDefault();
-    if (!createForm.name || !createForm.email) return;
-
-    if (emailAvailability === "taken") {
-      toast.error("Email is already registered");
-      return;
-    }
-
-    if (emailAvailability === "invalid") {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-
-    if (!createForm.password) {
-      toast.error("Password is required");
-      return;
-    }
-    if (createForm.password.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
-    if (createForm.password !== createForm.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      const { confirmPassword, ...payload } = createForm;
-      await dispatch(createAdmin(payload)).unwrap();
-      toast.success("Admin created successfully");
-      closeCreateModal();
-      dispatch(fetchAdminStats());
-    } catch (error) {
-      toast.error(error || "Failed to create admin");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Edit modal handlers
   const openEditModal = useCallback((admin) => {
     setSelectedAdmin(admin);
-    const role = Array.isArray(admin.role) ? admin.role[0] : admin.role || "admin";
-    const permissions = admin.permissions || { content: false, packages: false };
-    setEditForm({
-      name: admin?.name || "",
-      email: admin?.email || "",
-      role,
-      permissions: {
-        content: permissions.content ?? false,
-        packages: permissions.packages ?? false,
-      },
-    });
+    const role = Array.isArray(admin.role) ? admin.role[0] : admin.role;
+    setEditForm({ name: admin?.name || "", email: admin?.email || "", role });
   }, []);
 
   const closeEditModal = useCallback(() => {
     setSelectedAdmin(null);
   }, []);
-
-  const handleSaveEdit = async (event) => {
-    event.preventDefault();
-    if (!selectedAdmin) return;
-
-    try {
-      setIsSaving(true);
-      await dispatch(updateAdmin({
-        id: selectedAdmin._id,
-        name: editForm.name,
-        email: editForm.email,
-        role: editForm.role,
-        permissions: editForm.permissions,
-      })).unwrap();
-      toast.success("Admin updated");
-      closeEditModal();
-      dispatch(fetchAdminStats());
-    } catch (error) {
-      toast.error(error || "Failed to update admin");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDeleteAdmin = async (admin) => {
-    if (!window.confirm(`Are you sure you want to delete ${admin.name}?`)) return;
-    try {
-      await dispatch(deleteAdmin(admin._id)).unwrap();
-      toast.success("Admin deleted");
-      dispatch(fetchAdminStats());
-    } catch (error) {
-      toast.error(error || "Failed to delete admin");
-    }
-  };
-
-  const handleHardDeleteAdmin = async (admin) => {
-    if (!window.confirm(`PERMANENT DELETE: Are you sure you want to permanently delete ${admin.name}? This action cannot be undone.`)) return;
-    try {
-      await dispatch(hardDeleteAdmin(admin._id)).unwrap();
-      toast.success("Admin permanently deleted");
-      dispatch(fetchAdminStats());
-    } catch (error) {
-      toast.error(error || "Failed to permanently delete admin");
-    }
-  };
 
   const handleAccessAction = useCallback(
     async (admin, action) => {
@@ -282,7 +101,7 @@ const AdminAdminsPage = () => {
   const bulkAccessAction = useCallback(
     async (selectedRows, action) => {
       if (!selectedRows.length) return;
-      const manageableRows = selectedRows.filter((a) => a._id !== currentUser?._id && canManageUser(currentUserRoles, a.role));
+      const manageableRows = selectedRows.filter((a) => canManageUser(currentUserRoles, a.role));
       if (!manageableRows.length) {
         toast.error("No selected admins are manageable");
         return;
@@ -303,6 +122,25 @@ const AdminAdminsPage = () => {
     },
     [dispatch, currentUserRoles]
   );
+
+  const handleSaveEdit = async (event) => {
+    event.preventDefault();
+    if (!selectedAdmin) return;
+
+    try {
+      setIsSavingEdit(true);
+      await dispatch(
+        updateUserByAdmin({ userId: selectedAdmin._id, name: editForm.name, email: editForm.email })
+      ).unwrap();
+      toast.success("Admin updated");
+      closeEditModal();
+      dispatch(fetchAdminStats());
+    } catch (error) {
+      toast.error(error || "Failed to update admin");
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   const roleLabelFn = useCallback((role) => getRoleLabel(role), []);
 
@@ -390,53 +228,39 @@ const AdminAdminsPage = () => {
         label: "Edit",
         icon: <Edit className="h-4 w-4 text-blue-500" />,
         hidden: (admin) => !canManageUser(currentUserRoles, admin.role),
-        onClick: (admin) => {
-          if (admin._id === currentUser?._id) {
-            navigate("/settings");
-          } else {
-            openEditModal(admin);
-          }
-        },
+        onClick: (admin) => openEditModal(admin),
       },
       {
         key: "access-activate",
         label: "Activate",
         icon: <UserCheck className="h-4 w-4 text-emerald-500" />,
-        hidden: (admin) => admin._id === currentUser?._id || !admin?.isDeactivated || !canManageUser(currentUserRoles, admin.role),
+        hidden: (admin) => !admin?.isDeactivated || !canManageUser(currentUserRoles, admin.role),
         onClick: (admin) => handleAccessAction(admin, "activate"),
       },
       {
         key: "access-suspend",
         label: "Suspend",
         icon: <ShieldX className="h-4 w-4 text-amber-500" />,
-        hidden: (admin) => admin._id === currentUser?._id || admin?.isDeactivated || !canManageUser(currentUserRoles, admin.role),
+        hidden: (admin) => admin?.isDeactivated || !canManageUser(currentUserRoles, admin.role),
         onClick: (admin) => handleAccessAction(admin, "suspend"),
       },
       {
         key: "access-restore",
         label: "Restore",
         icon: <Undo2 className="h-4 w-4 text-indigo-500" />,
-        hidden: (admin) => admin._id === currentUser?._id || !admin?.Deleted?.isDeleted || !canManageUser(currentUserRoles, admin.role),
+        hidden: (admin) => !admin?.Deleted?.isDeleted || !canManageUser(currentUserRoles, admin.role),
         onClick: (admin) => handleAccessAction(admin, "restore"),
       },
       {
         key: "access-revoke",
-        label: "Soft Delete",
+        label: "Delete",
         icon: <Trash2 className="h-4 w-4 text-rose-500" />,
         destructive: true,
-        hidden: (admin) => admin._id === currentUser?._id || admin?.Deleted?.isDeleted || !canManageUser(currentUserRoles, admin.role),
+        hidden: (admin) => admin?.Deleted?.isDeleted || !canManageUser(currentUserRoles, admin.role),
         onClick: (admin) => handleAccessAction(admin, "revoke"),
       },
-      {
-        key: "permanent-delete",
-        label: "Permanent Delete",
-        icon: <UserX className="h-4 w-4 text-red-600 font-bold" />,
-        destructive: true,
-        hidden: (admin) => admin._id === currentUser?._id || !canManageUser(currentUserRoles, admin.role),
-        onClick: (admin) => handleHardDeleteAdmin(admin),
-      },
     ],
-    [currentUserRoles, openEditModal, handleAccessAction, handleHardDeleteAdmin]
+    [currentUserRoles, openEditModal, handleAccessAction]
   );
 
   const bulkActions = useMemo(
@@ -470,24 +294,12 @@ const AdminAdminsPage = () => {
     <PageTransition>
       <div className="space-y-8 pb-16">
         <div className="rounded-3xl bg-linear-to-br from-slate-900 to-indigo-900 text-white p-8 shadow-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield className="h-8 w-8" />
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-300">Admin Panel</p>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight">Manage Admins</h1>
-              </div>
+          <div className="flex items-center gap-3">
+            <Shield className="h-8 w-8" />
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-300">Admin Panel</p>
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight">Manage Admins</h1>
             </div>
-            {isSuperAdmin && (
-              <Button
-                onClick={openCreateModal}
-                className="bg-white text-slate-900 hover:bg-slate-100 cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" /> <span>Create Admin</span>
-                </div>
-              </Button>
-            )}
           </div>
         </div>
 
@@ -509,136 +321,11 @@ const AdminAdminsPage = () => {
             searchPlaceholder="Search by name or email"
             serverPagination={usersPagination}
             onFetchParamsChange={handleFetchParamsChange}
-            isRowSelectable={(admin) => {
-              const role = Array.isArray(admin.role) ? admin.role : [admin.role];
-              return !role.includes("super_admin");
-            }}
           />
         </Card>
       </div>
 
-      {/* Create Admin Modal */}
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={closeCreateModal}
-        title="Create New Admin"
-        size="md"
-      >
-        <form onSubmit={handleCreateAdmin} className="space-y-4">
-          <Input
-            label="Full Name"
-            value={createForm.name}
-            onChange={(event) => setCreateForm((prev) => ({ ...prev, name: event.target.value }))}
-            required
-          />
-          <Input
-            label="Email"
-            value={createForm.email}
-            type="email"
-            onChange={(event) => setCreateForm((prev) => ({ ...prev, email: event.target.value }))}
-            required
-            suffix={
-              isCheckingEmail ? (
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              ) : emailAvailability === "available" ? (
-                <Check className="h-4 w-4 text-emerald-500" />
-              ) : emailAvailability === "taken" ? (
-                <X className="h-4 w-4 text-rose-500" />
-              ) : null
-            }
-            error={emailAvailability === "taken" ? "Email is already taken" : null}
-          />
-          <Input
-            label="Password"
-            value={createForm.password}
-            type="password"
-            showPasswordToggle
-            onChange={(event) => setCreateForm((prev) => ({ ...prev, password: event.target.value }))}
-            required
-            minLength={8}
-          />
-          <Input
-            label="Confirm Password"
-            value={createForm.confirmPassword}
-            type="password"
-            showPasswordToggle
-            onChange={(event) => setCreateForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
-            required
-            error={createForm.confirmPassword && createForm.password !== createForm.confirmPassword ? "Passwords do not match" : null}
-          />
-          <Select
-            label="Role"
-            value={createForm.role}
-            onChange={(event) => {
-              const newRole = event.target.value;
-              setCreateForm(prev => {
-                const newState = { ...prev, role: newRole };
-                if (newRole === "super_admin") {
-                  newState.permissions = { content: true, packages: true };
-                }
-                return newState;
-              });
-            }}
-            options={[
-              { value: "admin", label: "Admin" },
-              { value: "super_admin", label: "Super Admin" },
-            ]}
-          />
-
-          {/* Permissions Section */}
-          <div className="space-y-3 pt-2">
-            <p className="text-sm font-semibold text-foreground">Module Permissions</p>
-            <div className="space-y-2">
-              <label className={`flex items-center gap-3 p-3 rounded-xl border border-border transition-colors ${createForm.role === "super_admin" ? "bg-muted/30 cursor-not-allowed opacity-75" : "hover:bg-muted/50 cursor-pointer"}`}>
-                <input
-                  type="checkbox"
-                  checked={createForm.role === "super_admin" ? true : createForm.permissions.content}
-                  disabled={createForm.role === "super_admin"}
-                  onChange={(e) => setCreateForm((prev) => ({
-                    ...prev,
-                    permissions: { ...prev.permissions, content: e.target.checked },
-                  }))}
-                  className={`h-4 w-4 rounded border-gray-300 focus:ring-indigo-500 ${createForm.role === "super_admin" ? "text-indigo-400 cursor-not-allowed" : "text-indigo-600"}`}
-                />
-                <div className="flex items-center gap-2">
-                  <FileText className={`h-4 w-4 ${createForm.role === "super_admin" ? "text-blue-400" : "text-blue-500"}`} />
-                  <span className="text-sm font-medium">Content Management</span>
-                </div>
-              </label>
-              <label className={`flex items-center gap-3 p-3 rounded-xl border border-border transition-colors ${createForm.role === "super_admin" ? "bg-muted/30 cursor-not-allowed opacity-75" : "hover:bg-muted/50 cursor-pointer"}`}>
-                <input
-                  type="checkbox"
-                  checked={createForm.role === "super_admin" ? true : createForm.permissions.packages}
-                  disabled={createForm.role === "super_admin"}
-                  onChange={(e) => setCreateForm((prev) => ({
-                    ...prev,
-                    permissions: { ...prev.permissions, packages: e.target.checked },
-                  }))}
-                  className={`h-4 w-4 rounded border-gray-300 focus:ring-indigo-500 ${createForm.role === "super_admin" ? "text-indigo-400 cursor-not-allowed" : "text-indigo-600"}`}
-                />
-                <div className="flex items-center gap-2">
-                  <Package className={`h-4 w-4 ${createForm.role === "super_admin" ? "text-violet-400" : "text-violet-500"}`} />
-                  <span className="text-sm font-medium">Packages & Subscriptions</span>
-                </div>
-              </label>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              These permissions only apply to admins. Super admins always have full access.
-            </p>
-          </div>
-
-          <div className="pt-2 flex gap-3">
-            <Button type="button" variant="outline" onClick={closeCreateModal}>
-              Cancel
-            </Button>
-            <Button type="submit" loading={isSaving} className="flex-1">
-              Create Admin
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Edit Admin Modal */}
+      {/* Edit Modal */}
       <Modal
         isOpen={Boolean(selectedAdmin)}
         onClose={closeEditModal}
@@ -659,83 +346,10 @@ const AdminAdminsPage = () => {
             onChange={(event) => setEditForm((prev) => ({ ...prev, email: event.target.value }))}
             required
           />
-          <Select
-            label="Role"
-            value={editForm.role}
-            onChange={(event) => {
-              const newRole = event.target.value;
-              setEditForm(prev => {
-                const newState = { ...prev, role: newRole };
-                if (newRole === "super_admin") {
-                  newState.permissions = { content: true, packages: true };
-                }
-                return newState;
-              });
-            }}
-            options={[
-              { value: "admin", label: "Admin" },
-              { value: "super_admin", label: "Super Admin" },
-            ]}
-          />
-
-          {/* Permissions Section */}
-          <div className="space-y-3 pt-2">
-            <p className="text-sm font-semibold text-foreground">Module Permissions</p>
-            <div className="space-y-2">
-              <label className={`flex items-center gap-3 p-3 rounded-xl border border-border transition-colors ${editForm.role === "super_admin" ? "bg-muted/30 cursor-not-allowed opacity-75" : "hover:bg-muted/50 cursor-pointer"}`}>
-                <input
-                  type="checkbox"
-                  checked={editForm.role === "super_admin" ? true : editForm.permissions.content}
-                  disabled={editForm.role === "super_admin"}
-                  onChange={(e) => setEditForm((prev) => ({
-                    ...prev,
-                    permissions: { ...prev.permissions, content: e.target.checked },
-                  }))}
-                  className={`h-4 w-4 rounded border-gray-300 focus:ring-indigo-500 ${editForm.role === "super_admin" ? "text-indigo-400 cursor-not-allowed" : "text-indigo-600"}`}
-                />
-                <div className="flex items-center gap-2">
-                  <FileText className={`h-4 w-4 ${editForm.role === "super_admin" ? "text-blue-400" : "text-blue-500"}`} />
-                  <span className="text-sm font-medium">Content Management</span>
-                </div>
-              </label>
-              <label className={`flex items-center gap-3 p-3 rounded-xl border border-border transition-colors ${editForm.role === "super_admin" ? "bg-muted/30 cursor-not-allowed opacity-75" : "hover:bg-muted/50 cursor-pointer"}`}>
-                <input
-                  type="checkbox"
-                  checked={editForm.role === "super_admin" ? true : editForm.permissions.packages}
-                  disabled={editForm.role === "super_admin"}
-                  onChange={(e) => setEditForm((prev) => ({
-                    ...prev,
-                    permissions: { ...prev.permissions, packages: e.target.checked },
-                  }))}
-                  className={`h-4 w-4 rounded border-gray-300 focus:ring-indigo-500 ${editForm.role === "super_admin" ? "text-indigo-400 cursor-not-allowed" : "text-indigo-600"}`}
-                />
-                <div className="flex items-center gap-2">
-                  <Package className={`h-4 w-4 ${editForm.role === "super_admin" ? "text-violet-400" : "text-violet-500"}`} />
-                  <span className="text-sm font-medium">Packages & Subscriptions</span>
-                </div>
-              </label>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              These permissions only apply to admins. Super admins always have full access.
-            </p>
-          </div>
-
-          <div className="pt-2 flex gap-3">
-            <Button type="button" variant="outline" onClick={closeEditModal}>
-              Cancel
-            </Button>
-            <Button type="submit" loading={isSaving} className="flex-1">
+          <div className="pt-2">
+            <Button type="submit" loading={isSavingEdit}>
               Save Changes
             </Button>
-            {isSuperAdmin && selectedAdmin && (
-              <Button
-                type="button"
-                variant="danger"
-                onClick={() => handleDeleteAdmin(selectedAdmin)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         </form>
       </Modal>

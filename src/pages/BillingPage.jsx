@@ -48,7 +48,7 @@ const STATUS_CONFIG = {
   },
 };
 
-const BillingPage = () => {
+export const BillingPanel = ({ showHeader = true }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
@@ -77,16 +77,16 @@ const BillingPage = () => {
   const hasBillingPortal = status === "active" || status === "past_due";
 
   return (
-    <PageTransition>
-      <div className="space-y-8 pb-16 max-w-2xl">
+    <div className="space-y-8 pb-16 max-w-2xl">
 
-        {/* Header */}
+      {showHeader && (
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Manage Billing</h1>
           <p className="text-sm text-slate-500 mt-1">
             View your subscription status and manage your billing details.
           </p>
         </div>
+      )}
 
         {/* Subscription Status Card */}
         <div className={`rounded-2xl border ${config.border} ${config.bg} p-6`}>
@@ -214,11 +214,18 @@ const BillingPage = () => {
           <p className="text-xs text-center text-slate-400">Opening billing portal...</p>
         )}
 
-        <p className="text-xs text-slate-400">
-          Billing is securely handled by Stripe. Your payment details are never stored on our servers.
-        </p>
+      <p className="text-xs text-slate-400">
+        Billing is securely handled by Stripe. Your payment details are never stored on our servers.
+      </p>
 
-      </div>
+    </div>
+  );
+};
+
+const BillingPage = () => {
+  return (
+    <PageTransition>
+      <BillingPanel />
     </PageTransition>
   );
 };

@@ -32,7 +32,6 @@ import RequireAuth from "./RequireAuth.jsx";
 import RequireGuest from "./RequireGuest.jsx";
 import RequireRole from "./RequireRole.jsx";
 import UpgradePage from "../pages/UpgradePage.jsx";
-import BillingPage from "../pages/BillingPage.jsx";
 import PaymentSuccessPage from "../pages/PaymentSuccessPage.jsx";
 import PaymentCancelPage from "../pages/PaymentCancelPage.jsx";
 
@@ -292,15 +291,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/billing",
-    element: (
-      <RequireAuth>
-        <RequireRole roles={["teacher"]} fallbackPath="/admin">
-          <AppLayout>
-            <BillingPage />
-          </AppLayout>
-        </RequireRole>
-      </RequireAuth>
-    ),
+    element: <Navigate to="/profile" replace />,
   },
   {
     path: "/upgrade",
