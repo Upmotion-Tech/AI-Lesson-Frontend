@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import { Copy, Download, KeyRound, RotateCcw, Save, ShieldCheck, User } from "lucide-react";
+import { Copy, Download, FileText, KeyRound, RotateCcw, Save, ShieldCheck, User } from "lucide-react";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
 import { fetchMe } from "../store/authThunks.js";
@@ -11,10 +11,12 @@ import Input from "../components/common/Input.jsx";
 import Button from "../components/common/Button.jsx";
 import PageTransition from "../components/common/PageTransition.jsx";
 import { getUserAvatarUrl } from "../utils/userAvatar.js";
+import { useNavigate } from "react-router-dom";
 
 const SettingsPage = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const navigate = useNavigate();
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
   const [isStartingTwoFactor, setIsStartingTwoFactor] = useState(false);
@@ -543,6 +545,57 @@ const SettingsPage = () => {
               </Button>
             </div>
           </form>
+        </Card>
+
+        <Card className="rounded-[1.5rem]">
+          <div className="flex items-center gap-2 mb-6">
+            <FileText className="h-5 w-5 text-slate-600" />
+            <h2 className="text-xl font-black text-slate-900">Legal Documentation</h2>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Review our legal documents and policies. These documents govern your use of the platform.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/legal")}
+                icon={<FileText className="h-4 w-4" />}
+              >
+                All Legal Docs
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/legal/terms")}
+                icon={<FileText className="h-4 w-4" />}
+              >
+                Terms of Service
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/legal/privacy")}
+                icon={<FileText className="h-4 w-4" />}
+              >
+                Privacy Policy
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/legal/ai-disclaimer")}
+                icon={<FileText className="h-4 w-4" />}
+              >
+                AI Disclaimer
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/legal/acceptable-use")}
+                icon={<FileText className="h-4 w-4" />}
+              >
+                Acceptable Use
+              </Button>
+            </div>
+          </div>
         </Card>
 
       </div>
