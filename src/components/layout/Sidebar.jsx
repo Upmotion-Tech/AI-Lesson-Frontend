@@ -40,7 +40,6 @@ const Sidebar = ({ isMobileOpen = false, onClose = () => {} }) => {
     { path: "/lessons", label: "My Lesson Plans", icon: FileText, color: "text-rose-600", bg: "bg-rose-50" },
     { path: "/profile", label: "Profile", icon: UserCircle2, color: "text-sky-600", bg: "bg-sky-50" },
     { path: "/settings", label: "Settings", icon: Settings, color: "text-slate-600", bg: "bg-slate-100" },
-    { path: "/legal", label: "Legal Docs", icon: FileText, color: "text-slate-500", bg: "bg-slate-100" },
   ];
 
   const normalizedRoles = Array.isArray(userRole) ? userRole : userRole ? [userRole] : [];
