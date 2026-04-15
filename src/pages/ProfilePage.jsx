@@ -77,7 +77,7 @@ const ProfilePage = () => {
                 className=" text-indigo-700"
                 icon={<Settings className="h-4 w-4" />}
               >
-                Edit Settings
+                Edit Profile
               </Button>
             </Link>
           </div>
