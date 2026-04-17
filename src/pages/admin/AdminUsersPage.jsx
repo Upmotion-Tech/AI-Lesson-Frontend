@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
 import {
   Edit,
+  MoreVertical,
+  ShieldAlert,
   ShieldCheck,
   ShieldX,
   Trash2,
@@ -11,7 +13,6 @@ import {
   UserMinus,
   Crown,
   GraduationCap,
-  ShieldAlert,
 } from "lucide-react";
 import { useAppDispatch } from "../../hooks/useAppDispatch.js";
 import { useAppSelector } from "../../hooks/useAppSelector.js";
@@ -22,22 +23,21 @@ import Badge from "../../components/common/Badge.jsx";
 import PageTransition from "../../components/common/PageTransition.jsx";
 import DataTable from "../../components/common/DataTable.jsx";
 import {
-  changeUserRoleAdmin,
   fetchAdminStats,
   fetchAllUsersAdmin,
   setUserAccessAdmin,
   updateUserByAdmin,
 } from "../../store/adminThunks.js";
+import { fetchRoles, updateUserRole } from "../../store/roleThunks.js";
 import Input from "../../components/common/Input.jsx";
 import { getUserAvatarUrl } from "../../utils/userAvatar.js";
 import {
   getRoleLabel,
-  getHighestPrivilegeLevel,
   canManageUser,
-  canManageRole,
   normalizeRoles,
   isSuperAdmin,
 } from "../../utils/roleHierarchy.js";
+import { formatRoleLabel } from "../../utils/roleUtils.js";
 
 const getInitials = (name) => {
   if (!name) return "U";
@@ -48,17 +48,19 @@ const AdminUsersPage = () => {
   const dispatch = useAppDispatch();
   const { users, usersPagination, usersStatus } = useAppSelector((state) => state.admin);
   const { user: currentUser } = useAppSelector((state) => state.auth);
+  const { availableRoles } = useAppSelector((state) => state.roles);
 
   const currentUserRoles = normalizeRoles(currentUser?.role);
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
-  const [editForm, setEditForm] = useState({ name: "", email: "" });
+  const [editForm, setEditForm] = useState({ name: "", email: "", educationalRole: "teacher" });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   useEffect(() => {
     dispatch(fetchAllUsersAdmin({ page: 1, limit: 10 }));
     dispatch(fetchAdminStats());
+    dispatch(fetchRoles());
   }, [dispatch]);
 
   const handleFetchParamsChange = useCallback(
@@ -70,35 +72,16 @@ const AdminUsersPage = () => {
 
   const openEditModal = useCallback((user) => {
     setSelectedUser(user);
-    setEditForm({ name: user?.name || "", email: user?.email || "" });
+    setEditForm({
+      name: user?.name || "",
+      email: user?.email || "",
+      educationalRole: user?.educationalRole || "teacher",
+    });
   }, []);
 
   const closeEditModal = useCallback(() => {
     setSelectedUser(null);
   }, []);
-
-  const handleRoleChange = useCallback(
-    async (user, role) => {
-      if (!canManageUser(currentUserRoles, user.role)) {
-        toast.error("You cannot manage this user");
-        return;
-      }
-
-      if (!canManageRole(currentUserRoles, role)) {
-        toast.error("You cannot assign this role");
-        return;
-      }
-
-      try {
-        await dispatch(changeUserRoleAdmin({ id: user._id, role: [role] })).unwrap();
-        toast.success("Role updated");
-        dispatch(fetchAdminStats());
-      } catch (error) {
-        toast.error(error || "Failed to update role");
-      }
-    },
-    [dispatch, currentUserRoles]
-  );
 
   const handleAccessAction = useCallback(
     async (user, action) => {
@@ -190,11 +173,12 @@ const AdminUsersPage = () => {
       {
         key: "user",
         header: "User",
-        searchKey: [(u) => u?.name, (u) => u?.email],
+        searchKey: [(u) => u?.name, (u) => u?.email, (u) => formatRoleLabel(u?.educationalRole)],
         render: (user) => {
           const role = Array.isArray(user.role) ? user.role[0] : user.role || "teacher";
           const isSuper = role === "super_admin";
           const isAdminRole = role === "admin";
+          const educationalRole = user.educationalRole || "teacher";
           return (
             <div className="flex items-center gap-4 min-w-[280px]">
               <div className="h-10 w-10 shrink-0 rounded-full bg-linear-to-br from-indigo-100 to-indigo-50 border border-indigo-100 flex items-center justify-center overflow-hidden shadow-sm">
@@ -210,6 +194,10 @@ const AdminUsersPage = () => {
                 <div className="inline-flex items-center gap-1 mt-1 text-xs font-black uppercase tracking-wider">
                   {isSuper ? <ShieldAlert className="h-3.5 w-3.5" /> : isAdminRole ? <Crown className="h-3.5 w-3.5" /> : <GraduationCap className="h-3.5 w-3.5 text-slate-400" />}
                   <span className={isSuper ? "text-red-600" : isAdminRole ? "text-indigo-600" : "text-slate-500"}>{roleLabelFn(role)}</span>
+                </div>
+                <div className="inline-flex items-center gap-1 mt-1 text-xs">
+                  <span className="text-slate-400">Educational Role:</span>
+                  <span className="font-medium text-slate-600">{formatRoleLabel(educationalRole)}</span>
                 </div>
               </div>
             </div>
@@ -248,32 +236,9 @@ const AdminUsersPage = () => {
           );
         },
       },
-      {
-        key: "actions",
-        header: "Actions",
-        render: (user) => {
-          return (
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => openEditModal(user)}
-              >
-                <Edit className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleRoleChange(user, isSuperAdmin(currentUserRoles) ? "admin" : "teacher")}
-              >
-                <ShieldCheck className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          );
-        },
-      },
+   
     ],
-    [currentUserRoles, handleRoleChange, openEditModal, roleLabelFn, statusConfig]
+    [roleLabelFn, statusConfig]
   );
 
   const filters = useMemo(
@@ -287,6 +252,12 @@ const AdminUsersPage = () => {
 
   const rowActions = useMemo(
     () => [
+      {
+        key: "edit",
+        label: "Edit User",
+        icon: <Edit className="h-4 w-4 text-slate-500" />,
+        onClick: (user) => openEditModal(user),
+      },
       {
         key: "access-activate",
         label: "Activate Account",
@@ -317,7 +288,7 @@ const AdminUsersPage = () => {
         onClick: (user) => handleAccessAction(user, "revoke"),
       },
     ],
-    [handleAccessAction]
+    [handleAccessAction, openEditModal]
   );
 
   const bulkActions = useMemo(
@@ -334,13 +305,28 @@ const AdminUsersPage = () => {
     event.preventDefault();
     if (!selectedUser) return;
 
+    // Check if user can manage this user
+    if (!canManageUser(currentUserRoles, selectedUser.role)) {
+      toast.error("You cannot manage this user");
+      return;
+    }
+
     try {
       setIsSavingEdit(true);
+
+      // Update basic info
       await dispatch(
         updateUserByAdmin({ userId: selectedUser._id, name: editForm.name, email: editForm.email })
       ).unwrap();
+
+      // Update educational role if changed
+      if (editForm.educationalRole !== (selectedUser.educationalRole || "teacher")) {
+        await dispatch(updateUserRole({ userId: selectedUser._id, educationalRole: editForm.educationalRole })).unwrap();
+      }
+
       toast.success("User updated");
       closeEditModal();
+      dispatch(fetchAdminStats());
     } catch (error) {
       toast.error(error || "Failed to update user");
     } finally {
@@ -365,8 +351,11 @@ const AdminUsersPage = () => {
           <DataTable
             className="p-2"
             title="Overview"
-            description="Manage your users seamlessly. Multi-select for bulk actions or search for specific students and admins."
-            data={users}
+            description="Manage your teachers seamlessly. Multi-select for bulk actions or search for specific teachers."
+            data={users.filter((user) => {
+              const role = Array.isArray(user.role) ? user.role[0] : user.role || "teacher";
+              return role !== "admin" && role !== "super_admin";
+            })}
             loading={usersStatus === "loading"}
             columns={columns}
             filters={filters}
@@ -387,8 +376,26 @@ const AdminUsersPage = () => {
         <form onSubmit={handleSaveEdit} className="space-y-4">
           <Input label="Full Name" value={editForm.name} onChange={(event) => setEditForm((prev) => ({ ...prev, name: event.target.value }))} required />
           <Input label="Email" value={editForm.email} type="email" onChange={(event) => setEditForm((prev) => ({ ...prev, email: event.target.value }))} required />
-          <div className="pt-2">
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Educational Role</label>
+            <select
+              value={editForm.educationalRole}
+              onChange={(e) => setEditForm((prev) => ({ ...prev, educationalRole: e.target.value }))}
+              className="w-full px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
+            >
+              {availableRoles.map((role) => (
+                <option key={role.value} value={role.value}>
+                  {role.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="pt-2 flex gap-2">
             <Button type="submit" loading={isSavingEdit}>Save Changes</Button>
+            <Button type="button" variant="outline" onClick={closeEditModal}>Cancel</Button>
           </div>
         </form>
       </Modal>

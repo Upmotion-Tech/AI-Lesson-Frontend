@@ -1,12 +1,16 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { User, Mail, Shield, Calendar, BookOpen, Users, FileText, Settings } from "lucide-react";
+import { User, Mail, Shield, Calendar, BookOpen, Users, FileText, Settings, Briefcase } from "lucide-react";
 import { useAppSelector } from "../hooks/useAppSelector.js";
+import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import Card from "../components/common/Card.jsx";
 import Button from "../components/common/Button.jsx";
 import PageTransition from "../components/common/PageTransition.jsx";
 import { getUserAvatarUrl } from "../utils/userAvatar.js";
 import { BillingPanel } from "./BillingPage.jsx";
+import { fetchRoles, fetchMyRole, updateMyRole } from "../store/roleThunks.js";
+import { clearRoleErrors } from "../store/roleSlice.js";
+import { formatRoleLabel } from "../utils/roleUtils.js";
 
 const formatDate = (value) => {
   if (!value) return "Not provided";
@@ -16,10 +20,21 @@ const formatDate = (value) => {
 };
 
 const ProfilePage = () => {
+  const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { list: curricula } = useAppSelector((state) => state.curriculum);
   const { list: studentDataList } = useAppSelector((state) => state.studentData);
   const { list: lessons } = useAppSelector((state) => state.lessons);
+  const {
+    availableRoles,
+    myRole,
+    status: rolesStatus,
+    updateStatus,
+    updateError,
+  } = useAppSelector((state) => state.roles);
+
+  const [selectedRole, setSelectedRole] = useState(() => myRole?.educationalRole || "");
+  const [showRoleSuccess, setShowRoleSuccess] = useState(false);
 
   const totalStudents = useMemo(
     () =>
@@ -41,6 +56,32 @@ const ProfilePage = () => {
   const isAdminOrSuperAdmin = normalizedRoles.includes("admin") || normalizedRoles.includes("super_admin");
   const isTeacher = normalizedRoles.includes("teacher");
   const avatarUrl = getUserAvatarUrl(user?.profileImage);
+
+  // Fetch roles and user's role info on mount
+  useEffect(() => {
+    dispatch(fetchRoles());
+    dispatch(fetchMyRole());
+
+    return () => {
+      dispatch(clearRoleErrors());
+    };
+  }, [dispatch]);
+
+  // Handle role update
+  const handleRoleUpdate = async () => {
+    if (!selectedRole || selectedRole === myRole?.educationalRole) return;
+
+    const result = await dispatch(updateMyRole({ educationalRole: selectedRole }));
+    if (updateMyRole.fulfilled.match(result)) {
+      setShowRoleSuccess(true);
+      setTimeout(() => setShowRoleSuccess(false), 3000);
+    }
+  };
+
+  // Only regular users with subscription can change role in profile
+  // Admins/SuperAdmins must use /admin/users to change roles
+  const canChangeRole = myRole?.canChangeRole && !isAdminOrSuperAdmin;
+  const educationalRoleLabel = myRole?.educationalRoleLabel || formatRoleLabel(user?.educationalRole);
 
   return (
     <PageTransition>
@@ -121,12 +162,63 @@ const ProfilePage = () => {
               </p>
             </div>
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-              <p className="text-xs font-black uppercase tracking-widest text-slate-500">Role</p>
+              <p className="text-xs font-black uppercase tracking-widest text-slate-500">System Role</p>
               <p className="text-sm font-semibold text-slate-900 mt-2 flex items-center gap-2">
                 <Shield className="h-4 w-4 text-slate-500" />
                 {roleLabel}
               </p>
             </div>
+            {!isAdminOrSuperAdmin && (
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 md:col-span-2">
+                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Educational Role</p>
+                <div className="mt-2 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                  {canChangeRole ? (
+                    <>
+                      <select
+                        value={selectedRole}
+                        onChange={(e) => setSelectedRole(e.target.value)}
+                        disabled={updateStatus === "loading" || rolesStatus !== "succeeded"}
+                        className="flex-1 px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <option value="">Select your role...</option>
+                        {availableRoles.map((role) => (
+                          <option key={role.value} value={role.value}>
+                            {role.label}
+                          </option>
+                        ))}
+                      </select>
+                      <Button
+                        onClick={handleRoleUpdate}
+                        disabled={
+                          updateStatus === "loading" ||
+                          !selectedRole ||
+                          selectedRole === myRole?.educationalRole
+                        }
+                        className="whitespace-nowrap"
+                      >
+                        {updateStatus === "loading" ? "Saving..." : "Update Role"}
+                      </Button>
+                    </>
+                  ) : (
+                    <p className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-slate-500" />
+                      {educationalRoleLabel}
+                    </p>
+                  )}
+                </div>
+                {!canChangeRole && (
+                  <p className="text-xs text-slate-500 mt-2">
+                    An active subscription is required to change your educational role.
+                  </p>
+                )}
+                {showRoleSuccess && (
+                  <p className="text-xs text-emerald-600 mt-2">Role updated successfully!</p>
+                )}
+                {updateError && (
+                  <p className="text-xs text-rose-600 mt-2">{updateError}</p>
+                )}
+              </div>
+            )}
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
               <p className="text-xs font-black uppercase tracking-widest text-slate-500">Date of Birth</p>
               <p className="text-sm font-semibold text-slate-900 mt-2 flex items-center gap-2">
