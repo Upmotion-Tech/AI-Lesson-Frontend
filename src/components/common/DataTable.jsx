@@ -199,6 +199,9 @@ const DataTable = ({
     [enableSelection, effectiveSelectedRowIds]
   );
 
+  // Serialize filterState for stable comparison in dependencies
+  const filterStateKey = useMemo(() => JSON.stringify(filterState), [filterState]);
+
   useEffect(() => {
     if (onFetchParamsChange) {
       onFetchParamsChange({
@@ -208,7 +211,8 @@ const DataTable = ({
         ...filterState,
       });
     }
-  }, [debouncedSearch, page, pageSize, filterState, onFetchParamsChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, page, pageSize, filterStateKey, onFetchParamsChange]);
 
   const normalizedSearchKeys = useMemo(() => {
     if (searchKeys && searchKeys.length) return searchKeys;
