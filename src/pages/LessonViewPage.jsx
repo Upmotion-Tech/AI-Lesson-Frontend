@@ -212,11 +212,11 @@ const LessonViewPage = () => {
             </Button>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                Lesson Plan
+                {lessonPlan.title || lessonPlan.objective || "Lesson Plan"}
               </h1>
-              {lessonPlan.standard?.code && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  {lessonPlan.standard.code}
+              {lessonPlan.curriculumId?.gradeLevelEstimate && (
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Grade: <span className="font-medium text-foreground">{lessonPlan.curriculumId.gradeLevelEstimate}</span>
                 </p>
               )}
             </div>
@@ -248,10 +248,8 @@ const LessonViewPage = () => {
               className="flex items-center gap-2"
             >
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <Trash2 className="h-4 w-4 text-danger" />
+                <Trash2 className="h-4 w-4" />
                 Delete
-                </div>
               </div>
             </Button>
           </div>
@@ -440,7 +438,7 @@ const LessonViewPage = () => {
                               },
                             })
                           }
-                          className="w-full p-3 border border-border rounded-lg bg-background text-foreground min-h-[80px]"
+                          className="w-full p-3 border border-border rounded-lg bg-background text-foreground min-h-20"
                         />
                       ) : (
                         <p className="text-card-foreground">
@@ -574,7 +572,7 @@ const LessonViewPage = () => {
                       Lesson Plan:
                     </p>
                     <p className="text-sm font-medium text-foreground line-clamp-2">
-                      {lessonPlan.objective || "Untitled Lesson Plan"}
+                      {lessonPlan.title || lessonPlan.objective || "Untitled Lesson Plan"}
                     </p>
                   </div>
                 )}

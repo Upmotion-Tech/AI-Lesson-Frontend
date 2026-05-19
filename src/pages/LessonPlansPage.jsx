@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "../hooks/useAppDispatch.js";
 import { useAppSelector } from "../hooks/useAppSelector.js";
-import { fetchAllLessonPlans, deleteLessonPlan } from "../store/lessonThunks.js";
+import { fetchAllLessonPlans, deleteLessonPlan, updateLessonPlan } from "../store/lessonThunks.js";
 import Card from "../components/common/Card.jsx";
 import Button from "../components/common/Button.jsx";
 import Badge from "../components/common/Badge.jsx";
@@ -23,6 +23,9 @@ import {
   Search,
   Trash2,
   AlertTriangle,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 
 const LessonPlansPage = () => {
@@ -33,6 +36,9 @@ const LessonPlansPage = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [lessonToDelete, setLessonToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editingTitleId, setEditingTitleId] = useState(null);
+  const [editingTitleValue, setEditingTitleValue] = useState("");
+  const [savingTitleId, setSavingTitleId] = useState(null);
 
   useEffect(() => {
     dispatch(fetchAllLessonPlans());
@@ -42,6 +48,7 @@ const LessonPlansPage = () => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
+      plan.title?.toLowerCase().includes(query) ||
       plan.objective?.toLowerCase().includes(query) ||
       plan.standard?.code?.toLowerCase().includes(query) ||
       plan.standard?.description?.toLowerCase().includes(query)
@@ -75,7 +82,35 @@ const LessonPlansPage = () => {
     setLessonToDelete(null);
   };
 
-  if (status === "loading") {
+  const handleTitleEditStart = (e, plan) => {
+    e.stopPropagation();
+    setEditingTitleId(plan._id);
+    setEditingTitleValue(plan.title || plan.objective || "");
+  };
+
+  const handleTitleSave = async (e, planId) => {
+    e.stopPropagation();
+    const newTitle = editingTitleValue.trim();
+    setSavingTitleId(planId);
+    try {
+      await dispatch(updateLessonPlan({ lessonId: planId, updates: { title: newTitle } })).unwrap();
+      toast.success("Title updated");
+    } catch (err) {
+      toast.error(err || "Failed to update title");
+    } finally {
+      setSavingTitleId(null);
+      setEditingTitleId(null);
+      setEditingTitleValue("");
+    }
+  };
+
+  const handleTitleCancel = (e) => {
+    e.stopPropagation();
+    setEditingTitleId(null);
+    setEditingTitleValue("");
+  };
+
+  if (status === "loading" && lessonPlans.length === 0) {
     return (
       <PageTransition>
         <div className="space-y-4 sm:space-y-6">
@@ -184,17 +219,59 @@ const LessonPlansPage = () => {
               <div className="space-y-4">
                 {/* Header */}
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-card-foreground mb-1 line-clamp-2 group-hover:text-primary transition-colors">
-                      {plan.objective || "Untitled Lesson Plan"}
-                    </h3>
-                    {plan.standard?.code && (
-                      <p className="text-xs text-muted-foreground font-mono">
-                        {plan.standard.code}
+                  <div className="flex-1 min-w-0">
+                    {editingTitleId === plan._id ? (
+                      <div
+                        className="flex items-center gap-1 mb-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          autoFocus
+                          value={editingTitleValue}
+                          onChange={(e) => setEditingTitleValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleTitleSave(e, plan._id);
+                            if (e.key === "Escape") handleTitleCancel(e);
+                          }}
+                          className="flex-1 min-w-0 text-sm font-semibold border border-primary rounded px-2 py-1 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                        <button
+                          onClick={(e) => handleTitleSave(e, plan._id)}
+                          disabled={savingTitleId === plan._id}
+                          className="p-1 rounded hover:bg-success/10 text-success transition-colors shrink-0"
+                          title="Save title"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={handleTitleCancel}
+                          className="p-1 rounded hover:bg-danger/10 text-muted-foreground hover:text-danger transition-colors shrink-0"
+                          title="Cancel"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-1 group/title mb-1">
+                        <h3 className="text-lg font-semibold text-card-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                          {plan.title || plan.objective || "Untitled Lesson Plan"}
+                        </h3>
+                        <button
+                          onClick={(e) => handleTitleEditStart(e, plan)}
+                          className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover/title:opacity-100 shrink-0 mt-0.5"
+                          title="Edit title"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
+                    {plan.curriculumId?.gradeLevelEstimate && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Grade: <span className="font-medium text-foreground">{plan.curriculumId.gradeLevelEstimate}</span>
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <Badge
                       variant={plan.status === "PUBLISHED" ? "success" : "warning"}
                       className="shrink-0"
@@ -321,7 +398,7 @@ const LessonPlansPage = () => {
                 <div className="mt-3 p-3 bg-muted rounded-lg border border-border">
                   <p className="text-xs text-muted-foreground mb-1">Lesson Plan:</p>
                   <p className="text-sm font-medium text-foreground line-clamp-2">
-                    {lessonToDelete.objective || "Untitled Lesson Plan"}
+                    {lessonToDelete.title || lessonToDelete.objective || "Untitled Lesson Plan"}
                   </p>
                 </div>
               )}
