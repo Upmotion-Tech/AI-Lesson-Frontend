@@ -105,7 +105,7 @@ const LessonPlansPage = () => {
   };
 
   const handleTitleCancel = (e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     setEditingTitleId(null);
     setEditingTitleValue("");
   };
@@ -214,7 +214,7 @@ const LessonPlansPage = () => {
               <Card
                 className="border-l-4 border-l-primary group relative"
                 clickable
-                onClick={() => navigate(`/lessons/${plan._id}`)}
+                onClick={() => { if (editingTitleId !== plan._id) navigate(`/lessons/${plan._id}`); }}
               >
               <div className="space-y-4">
                 {/* Header */}
@@ -230,12 +230,15 @@ const LessonPlansPage = () => {
                           value={editingTitleValue}
                           onChange={(e) => setEditingTitleValue(e.target.value)}
                           onKeyDown={(e) => {
+                            e.stopPropagation();
                             if (e.key === "Enter") handleTitleSave(e, plan._id);
                             if (e.key === "Escape") handleTitleCancel(e);
                           }}
+                          onBlur={() => handleTitleCancel()}
                           className="flex-1 min-w-0 text-sm font-semibold border border-primary rounded px-2 py-1 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                         <button
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={(e) => handleTitleSave(e, plan._id)}
                           disabled={savingTitleId === plan._id}
                           className="p-1 rounded hover:bg-success/10 text-success transition-colors shrink-0"
@@ -244,6 +247,7 @@ const LessonPlansPage = () => {
                           <Check className="h-4 w-4" />
                         </button>
                         <button
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={handleTitleCancel}
                           className="p-1 rounded hover:bg-danger/10 text-muted-foreground hover:text-danger transition-colors shrink-0"
                           title="Cancel"
