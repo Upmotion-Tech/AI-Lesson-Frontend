@@ -219,6 +219,11 @@ const LessonViewPage = () => {
                   Grade: <span className="font-medium text-foreground">{lessonPlan.curriculumId.gradeLevelEstimate}</span>
                 </p>
               )}
+              {lessonPlan.standard?.code && (
+                <p className="text-sm text-muted-foreground mt-0.5 font-mono">
+                  {lessonPlan.standard.code}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">

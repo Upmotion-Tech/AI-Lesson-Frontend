@@ -274,6 +274,11 @@ const LessonPlansPage = () => {
                         Grade: <span className="font-medium text-foreground">{plan.curriculumId.gradeLevelEstimate}</span>
                       </p>
                     )}
+                    {plan.standard?.code && (
+                      <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                        {plan.standard.code}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <Badge
